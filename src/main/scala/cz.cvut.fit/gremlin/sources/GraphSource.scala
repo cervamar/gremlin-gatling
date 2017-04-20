@@ -6,5 +6,5 @@ import org.apache.tinkerpop.gremlin.structure.Graph
   * Created by cerva on 11/04/2017.
   */
 trait GraphSource {
-    def getEmptyInstance(): Graph
+    def openGraph(): Graph
 }

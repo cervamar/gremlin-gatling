@@ -1,23 +1,25 @@
 package cz.cvut.fit.gatling
 
-import akka.actor.ActorDSL._
-import akka.actor.ActorRef
+import cz.cvut.fit.gatling.protocol.GremlinProtocol
+import io.gatling.core.action.Action
 import io.gatling.core.action.builder.ActionBuilder
-import io.gatling.core.config.Protocols
+import io.gatling.core.protocol.ProtocolComponentsRegistry
 import io.gatling.core.session.Expression
+import io.gatling.core.structure.ScenarioContext
 
 /**
   * Created by cerva on 13/04/2017.
   */
 case class GremlinBuilder  (requestName: Expression[String], query: Expression[String]) extends ActionBuilder {
 
-  def gremlinProtocol(protocols: Protocols) =
-    protocols.getProtocol[GremlinProtocol]
-      .getOrElse(throw new UnsupportedOperationException("GremlinProtocol Protocol wasn't registered"))
+  def getGremlinComponent(protocolComponentsRegistry: ProtocolComponentsRegistry) =
+    protocolComponentsRegistry.components(GremlinProtocol.GremlinProtocolKey)
+      //.getOrElse(throw new UnsupportedOperationException("GremlinProtocol Protocol wasn't registered"))
 
-  override def build(next: ActorRef, protocols: Protocols): ActorRef = {
-    actor(actorName("Functioncall")) {
-      new GremlinAction(requestName, query, gremlinProtocol(protocols), next)
-    }
+  override def build(ctx: ScenarioContext, next: Action): Action = {
+    import ctx._
+    val statsEngine = coreComponents.statsEngine
+    val gremlinComponent = getGremlinComponent(protocolComponentsRegistry)
+      GremlinAction(requestName, query, gremlinComponent.gremlinProtocol, ctx.system, statsEngine, next)
   }
 }

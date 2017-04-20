@@ -6,6 +6,6 @@ import org.apache.tinkerpop.gremlin.tinkergraph.structure.{TinkerFactory, Tinker
   * Created by cerva on 11/04/2017.
   */
 object TinkergraphSource extends GraphSource{
-  override def getEmptyInstance(): Graph = TinkerGraph.open
+  override def openGraph(): Graph = TinkerGraph.open
   def getModern(): Graph = TinkerFactory.createModern()
 }

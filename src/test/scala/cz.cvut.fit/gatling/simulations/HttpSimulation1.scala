@@ -2,7 +2,6 @@ package cz.cvut.fit.gatling.simulations
 
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
-import io.gatling.http.config.HttpProtocolBuilder.toHttpProtocol
 import io.gatling.http.request.builder.HttpRequestBuilder.toActionBuilder
 
 /**

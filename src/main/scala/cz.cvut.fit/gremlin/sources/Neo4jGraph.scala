@@ -8,5 +8,5 @@ import org.apache.tinkerpop.gremlin.structure.Graph
   */
 object Neo4jGraphResource extends GraphSource{
 
-  override def getEmptyInstance(): Graph = Neo4jGraph.open("/tmp/neo4j")
+  override def openGraph(): Graph = Neo4jGraph.open("/tmp/neo4j")
 }

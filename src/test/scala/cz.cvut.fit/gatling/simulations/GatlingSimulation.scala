@@ -1,7 +1,7 @@
 package cz.cvut.fit.gatling.simulations
 
 import cz.cvut.fit.gatling.GremlinPredef.gremlin
-import cz.cvut.fit.gatling.GremlinProtocol
+import cz.cvut.fit.gatling.protocol.GremlinProtocol
 import cz.cvut.fit.gremlin.sources.GenericGraphSource
 import io.gatling.core.Predef._
 
@@ -11,10 +11,10 @@ import io.gatling.core.Predef._
 class GatlingSimulation  extends Simulation {
 
   def loadGraphDefinition(path: String) = {
-    new GenericGraphSource(path).getEmptyInstance()
+    new GenericGraphSource(path).openGraph()
   }
 
-  val graph = loadGraphDefinition("pathToResourceDefinition")
+  val graph = loadGraphDefinition("src/test/resources/tinkerpop-modern.properties")
   val gremlinProtocol = new GremlinProtocol(graph)
 
   def scn = scenario("Scenario1").repeat(1){
@@ -22,6 +22,6 @@ class GatlingSimulation  extends Simulation {
   }
 
   setUp(
-    scn.inject(atOnceUsers(1))
-  ).protocols()
+    scn.inject(atOnceUsers(10))
+  ).protocols(gremlinProtocol)
 }
