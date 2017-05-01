@@ -22,8 +22,8 @@ class ScalaGenericGraphSourceTest {
 
   def createBindings() = {
     val bindings = engine.createBindings
-    bindings.put("g", graph.traversal)
-    //bindings.put("results", results)
+    bindings.put("g", graph.traversal())
+    bindings.put("results", results)
     bindings
   }
 
@@ -31,10 +31,10 @@ class ScalaGenericGraphSourceTest {
   @Test
   def actorTest: Unit = {
 
-        val query = "g.V(1).repeat(out().simplePath()).until(hasId(5)).path().limit(1)"//.fill(results)"
+        val query = "g.V(1).repeat(out().simplePath()).until(hasId(5)).path().limit(1).fill(results)"
 
-        val result = compileQuery(query, graph).eval(createBindings())
-        print(result)
-        //print(results)
+         println(compileQuery(query, graph).eval(createBindings()))
+        //print(result)
+        print(results)
       }
 }

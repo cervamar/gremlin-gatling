@@ -13,6 +13,7 @@ import io.gatling.core.stats.message.ResponseTimings
 import io.gatling.core.util.NameGen
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine
 import org.apache.tinkerpop.gremlin.structure.Graph
+import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils
 
 
 /**
@@ -83,6 +84,6 @@ class GremlinActionActor(
 
   @throws[ScriptException]
   def evaluate(compiledScript: CompiledScript, bindings: Bindings): Unit = {
-    System.out.println(compiledScript.eval(bindings))
+    System.out.println(IteratorUtils.asList(compiledScript.eval(bindings)))
   }
 }

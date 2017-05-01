@@ -2,6 +2,7 @@ package cz.cvut.fit.gremlin.sources;
 
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.junit.Test;
 
 import javax.script.Bindings;
@@ -9,6 +10,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Iterator;
 
 /**
   * Created by cerva on 11/04/2017.
@@ -44,6 +46,17 @@ public class TinkergraphSourceTest {
     bindings.put("results", results);
     engine.eval(query, bindings);
     System.out.println(results);
+  }
+
+  @Test
+  public void getVertex() throws ScriptException {
+    Graph graph = TinkergraphSource.getModern();
+    graph.vertices(1);
+    String query = "g.vertices(1)";
+    ScriptEngine engine = new GremlinGroovyScriptEngine();
+    Bindings bindings = engine.createBindings();
+    bindings.put("g", graph);
+    assert (IteratorUtils.count((Iterator) engine.eval(query, bindings)) > 0);
   }
 
 

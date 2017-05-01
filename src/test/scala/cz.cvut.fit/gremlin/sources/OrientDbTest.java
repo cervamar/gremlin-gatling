@@ -1,7 +1,9 @@
 package cz.cvut.fit.gremlin.sources;
 
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine;
+import org.apache.tinkerpop.gremlin.orientdb.OrientGraphFactory;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerFactory;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
@@ -9,6 +11,7 @@ import org.junit.Test;
 
 import javax.script.Bindings;
 import javax.script.CompiledScript;
+import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -21,21 +24,36 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
   * Created by cerva on 11/04/2017.
   */
 
-public class GenericGraphSourceTest {
+public class OrientDbTest {
 
   @Test
   public void getVertex() throws ScriptException {
-    TinkerGraph g = TinkerFactory.createModern();
-    GremlinGroovyScriptEngine engine = new GremlinGroovyScriptEngine();
-    Graph graph = new GenericGraphSource("src/test/resources/tinkerpop-modern.properties").openGraph();
-    Bindings bindings = engine.createBindings();
-    bindings.put("g", graph.traversal());
-    assert(IteratorUtils.count((Iterator) engine.eval("g.V(1).repeat(out().simplePath()).until(hasId(4)).path().limit(5)",bindings)) ==
-            IteratorUtils.count(g.traversal().V(1).repeat(out().simplePath()).until(hasId(4)).path().limit(1)));
-    System.out.println(IteratorUtils.asList(g.traversal().V(1).repeat(out().simplePath()).until(hasId(4)).path()));
+    Graph graph = new OrientGraphFactory("remote:192.168.99.100:2424/test", "root", "rootpwd").getNoTx();
+            //new OrientGraph("local:/home/gremlin/db/demo")
+      assert (IteratorUtils.count(graph.vertices("9:2")) > 0);
+      Iterator<Vertex> res = graph.vertices("9:2");
+      String query = "g.vertices(\"9:3\")";
+      ScriptEngine engine = new GremlinGroovyScriptEngine();
+      Bindings bindings = engine.createBindings();
+      bindings.put("g", graph);
+      assert (IteratorUtils.count((Iterator) engine.eval(query, bindings)) > 0);
   }
 
 
+  @Test
+  public void getVertexWithConfig() throws ScriptException {
+    Graph graph =  new GenericGraphSource("src/test/resources/orientDb.properties").openGraph();
+    //new OrientGraph("local:/home/gremlin/db/demo")
+    assert (IteratorUtils.count(graph.vertices("9:2")) > 0);
+    Iterator<Vertex> res = graph.vertices("9:2");
+    String query = "g.vertices(\"9:3\")";
+    ScriptEngine engine = new GremlinGroovyScriptEngine();
+    Bindings bindings = engine.createBindings();
+    bindings.put("g", graph);
+    assert (IteratorUtils.count((Iterator) engine.eval(query, bindings)) > 0);
+  }
+
+/*
   @Test
   public void insertVector() throws ScriptException {
     Graph graph = new GenericGraphSource("src/test/resources/tinkerpop-modern.properties").openGraph();
@@ -47,7 +65,7 @@ public class GenericGraphSourceTest {
     //bindings.put("results", results);
     CompiledScript compliedQuery = engine.compile(query);
     System.out.println(compliedQuery.eval(bindings));
-
+*/
     //System.out.println(results);
 
     /*String label = "france";
@@ -61,7 +79,7 @@ public class GenericGraphSourceTest {
     println("paris has id" + paris.id())
     println(graph.V.value("id").toList)
     graph.tx().commit()
-    graph.close()*/
-  }
+    graph.close()
+  }*/
 
 }
