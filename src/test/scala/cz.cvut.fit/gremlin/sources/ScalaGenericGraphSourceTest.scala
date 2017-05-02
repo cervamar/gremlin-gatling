@@ -32,8 +32,7 @@ class ScalaGenericGraphSourceTest {
   def actorTest: Unit = {
 
         val query = "g.V(1).repeat(out().simplePath()).until(hasId(5)).path().limit(1).fill(results)"
-
-         println(compileQuery(query, graph).eval(createBindings()))
+        println(compileQuery(query, graph).eval(createBindings()))
         //print(result)
         print(results)
       }

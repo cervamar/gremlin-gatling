@@ -9,4 +9,5 @@ import org.apache.tinkerpop.gremlin.structure.util.GraphFactory
 class GenericGraphSource(configPath: String) extends GraphSource{
 
   override def openGraph(): Graph = GraphFactory.open(configPath)
+
 }
