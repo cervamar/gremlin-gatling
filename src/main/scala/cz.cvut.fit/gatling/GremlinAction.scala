@@ -41,6 +41,7 @@ class GremlinActionActor(
      val next: Action)  extends ActionActor {
 
   val engine = new GremlinGroovyScriptEngine
+  var queryResult = new Object
 
   def compileQuery(resolvedQuery: String, graph: Graph) = {
     engine.compile(resolvedQuery)
@@ -54,12 +55,14 @@ class GremlinActionActor(
 
   override def execute(session: Session) = {
     val resolvedQuery = gremlinQuery.apply(session).get
-    val startTime = now()
     val compliedQuery = compileQuery(resolvedQuery, protocol.graph)
-    val result = call(compliedQuery, createBindings())
+    val bindings = createBindings();
+    val startTime = now()
+    val resultCode = call(compliedQuery, bindings)
     val endTime = now()
+    printResult(queryResult)
     val timings = ResponseTimings(startTime, endTime)
-    if (result >= 200 && result <= 299)
+    if (resultCode >= 200 && resultCode <= 299)
       statsEngine.logResponse(session, requestName.apply(session).get, timings, Status("OK"), None, None)
     else
       statsEngine.logResponse(session, requestName.apply(session).get, timings, Status("KO"), None, None)
@@ -68,8 +71,7 @@ class GremlinActionActor(
 
   def call(compliedQuery: CompiledScript, bindings: Bindings): Int = {
     try {
-      //Objecf result =
-      evaluate(compliedQuery, bindings);
+      queryResult = evaluate(compliedQuery, bindings);
       200
     }
       catch {
@@ -83,7 +85,11 @@ class GremlinActionActor(
   private def now() = System.currentTimeMillis()
 
   @throws[ScriptException]
-  def evaluate(compiledScript: CompiledScript, bindings: Bindings): Unit = {
-    System.out.println(IteratorUtils.asList(compiledScript.eval(bindings)))
+  def evaluate(compiledScript: CompiledScript, bindings: Bindings): Object = {
+    compiledScript.eval(bindings)
+  }
+
+  def printResult(result: Object) {
+    System.out.println(IteratorUtils.asList(result))
   }
 }
