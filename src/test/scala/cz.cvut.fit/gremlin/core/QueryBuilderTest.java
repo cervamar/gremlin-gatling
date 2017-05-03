@@ -35,6 +35,7 @@ public class QueryBuilderTest {
 
     @Before
     public void fillDatabase() throws IOException {
+        sourceProvider.initGraph();
         sourceProvider.fill();
         vertices = sourceProvider.updateIds();
     }
@@ -46,6 +47,16 @@ public class QueryBuilderTest {
         List paths = IteratorUtils.asList(result);
         assert(paths.size() > 0);
         assert(((Path) paths.get(0)).size() == 3);
+    }
+
+
+    @Test
+    public void ageMean() throws ScriptException {
+        EvaluableScriptQuery compiledScript = new QueryBuilder(sourceProvider.getGraph()).query("g.V().values('age').mean()");
+        Object result = compiledScript.eval();
+        List mean = IteratorUtils.asList(result);
+        assert(mean.size() > 0);
+        assert(((double) mean.get(0)) == 30.75);
     }
 
     @After

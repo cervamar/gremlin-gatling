@@ -23,6 +23,7 @@ import java.util.Map;
  * @author Marek.Cervak
  */
 public interface TestSourceProvider {
+    void initGraph();
     Graph getGraph();
     void clean() throws Exception;
 
@@ -42,6 +43,8 @@ public interface TestSourceProvider {
         return vertices;
     }
 
+
+
     abstract class GraphSource implements TestSourceProvider {
         protected Graph graph;
 
@@ -58,11 +61,15 @@ public interface TestSourceProvider {
     }
 
     class GraphInMemorySource extends GraphSource {
-
+        private String configurationFile;
         public GraphInMemorySource(String path) {
-            graph = GraphFactory.open(path);
+            configurationFile = path;
         }
 
+        @Override
+        public void initGraph() {
+            graph = GraphFactory.open(configurationFile);
+        }
     }
 
     abstract class GraphFileSystemSource extends GraphSource {
@@ -84,9 +91,10 @@ public interface TestSourceProvider {
 
    class Neo4JSource extends GraphFileSystemSource {
 
-        public Neo4JSource() {
+       @Override
+       public void initGraph() {
            graph = Neo4jGraph.open(dbPath);
-       }
+        }
 
    }
 }
