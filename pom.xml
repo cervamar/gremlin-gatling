@@ -39,6 +39,11 @@
       <artifactId>gremlin-groovy</artifactId>
       <version>${gremlin.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.janusgraph</groupId>
+      <artifactId>janusgraph-core</artifactId>
+      <version>0.1.0</version>
+    </dependency>
     <!-- Gremlin scala
         <dependency>
       <groupId>org.scala-lang</groupId>

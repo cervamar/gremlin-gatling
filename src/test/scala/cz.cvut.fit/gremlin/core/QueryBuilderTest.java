@@ -1,10 +1,7 @@
 package cz.cvut.fit.gremlin.core;
 
-import cz.cvut.fit.gremlin.utils.GraphUtils;
+import cz.cvut.fit.gremlin.sources.TestSourceProvider;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -24,35 +21,27 @@ import java.util.*;
 @RunWith(Parameterized.class)
 public class QueryBuilderTest {
     Map<String, Object> vertices = new HashMap<>();
-    public Graph graph;
 
     @Parameterized.Parameter
-    public String propertyFile;
+    public TestSourceProvider sourceProvider;
 
     @Parameterized.Parameters
-    public static Collection<String> properties () {
-        return Arrays.asList("src/test/resources/tinkerpop-modern.properties", "src/test/resources/orientDb-inmemory.properties");
+    public static Collection<TestSourceProvider> properties () {
+        return Arrays.asList(new TestSourceProvider.GraphInMemorySource("src/test/resources/tinkerpop-modern.properties"),
+                new TestSourceProvider.GraphInMemorySource("src/test/resources/orientDb-inmemory.properties"),
+                new TestSourceProvider.GraphInMemorySource("src/test/resources/janusGraph-inmemory.properties"),
+                new TestSourceProvider.Neo4JSource());
     }
 
     @Before
     public void fillDatabase() throws IOException {
-        graph = GraphFactory.open(propertyFile);
-        if (GraphUtils.isEmpty(graph)) {
-            GraphUtils.importModern(graph);
-        }
-        updateIds();
-    }
-
-    private void updateIds() {
-        for (Iterator<Vertex> it = graph.vertices(); it.hasNext(); ) {
-            Vertex vertex = it.next();
-            vertices.put((String) vertex.property("name").value(), vertex.id());
-        }
+        sourceProvider.fill();
+        vertices = sourceProvider.updateIds();
     }
 
     @Test
     public void shortestPath() throws ScriptException {
-        EvaluableScriptQuery compiledScript = new QueryBuilder(graph).shortestPath(vertices.get("marko"),vertices.get("ripple"));
+        EvaluableScriptQuery compiledScript = new QueryBuilder(sourceProvider.getGraph()).shortestPath(vertices.get("marko"),vertices.get("ripple"));
         Object result = compiledScript.eval();
         List paths = IteratorUtils.asList(result);
         assert(paths.size() > 0);
@@ -61,8 +50,7 @@ public class QueryBuilderTest {
 
     @After
     public void cleanDatabase() throws Exception {
-        graph.traversal().V().drop().iterate();
-        graph.close();
+        sourceProvider.clean();
     }
 
 }

@@ -3,7 +3,7 @@ package cz.cvut.fit.gremlin.core
 import javax.script.ScriptContext
 
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine
-import org.apache.tinkerpop.gremlin.structure.Graph
+import org.apache.tinkerpop.gremlin.structure.{Graph, Vertex}
 
 /**
   * Created on 5/3/2017.
@@ -22,6 +22,11 @@ class QueryBuilder(graph: Graph) {
     bindings.put("vertexId", vertexIdFrom)
     bindings.put("vertexId2", vertexIdTo)
     new EvaluableScriptQuery("g.V(vertexId).repeat(out().simplePath()).until(hasId(vertexId2)).path().limit(1)", bindings, engine)
+  }
+
+  def addVertex(vertex:Vertex) : EvaluableScriptQuery = {
+    val bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE)
+    new EvaluableScriptQuery("graph.add", bindings, engine)
   }
 
 }
