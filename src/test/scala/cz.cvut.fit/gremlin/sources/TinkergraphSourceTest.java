@@ -2,6 +2,7 @@ package cz.cvut.fit.gremlin.sources;
 
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerFactory;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.junit.Test;
@@ -12,6 +13,8 @@ import javax.script.ScriptException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import static org.apache.tinkerpop.gremlin.structure.Direction.OUT;
 
 /**
   * Created by cerva on 11/04/2017.
@@ -59,5 +62,17 @@ public class TinkergraphSourceTest {
     bindings.put("g", graph);
     assert (IteratorUtils.count((Iterator) engine.eval(query, bindings)) > 0);
   }
-  
+
+  @Test
+  public void createEdge() throws ScriptException {
+    Graph graph = TinkerFactory.createModern();
+    Vertex to = graph.vertices(6).next();
+    Vertex from = graph.vertices(1).next();
+    assert(IteratorUtils.count(from.edges(OUT,"wish")) == 0);
+    System.out.println(IteratorUtils.asList(from.edges(OUT)));
+    from.addEdge("wish", to);
+    System.out.println(IteratorUtils.asList(from.edges(OUT)));
+    assert(IteratorUtils.count(from.edges(OUT,"wish")) == 1);
+  }
+
 }
