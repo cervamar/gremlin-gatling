@@ -89,6 +89,12 @@
       <version>${gatling.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- Utils -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.16.16</version>
+    </dependency>
     <!-- Test -->
     <dependency>
       <groupId>junit</groupId>
