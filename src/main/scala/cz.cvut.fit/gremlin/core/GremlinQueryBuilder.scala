@@ -10,9 +10,9 @@ import org.apache.tinkerpop.gremlin.structure.{Graph, Vertex}
   *
   * @author Marek.Cervak67
   */
-class QueryBuilder(graph: Graph) {
+class GremlinQueryBuilder(graph: Graph) {
 
-  import QueryBuilder._
+  import GremlinQueryBuilder._
   val engine = new GremlinGroovyScriptEngine()
   engine.put(GRAPH, graph)
   engine.put(TRAVERSAL, graph.traversal())
@@ -40,7 +40,7 @@ class QueryBuilder(graph: Graph) {
 
 }
 
-object QueryBuilder {
+object GremlinQueryBuilder {
   val GRAPH = "graph"
   val TRAVERSAL = "g"
 }

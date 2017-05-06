@@ -19,7 +19,7 @@ import java.util.*;
  * @author Marek.Cervak
  */
 @RunWith(Parameterized.class)
-public class QueryBuilderTest {
+public class GremlinQueryBuilderTest {
     Map<String, Object> vertices = new HashMap<>();
 
     @Parameterized.Parameter
@@ -42,7 +42,7 @@ public class QueryBuilderTest {
 
     @Test
     public void shortestPath() throws ScriptException {
-        EvaluableScriptQuery compiledScript = new QueryBuilder(sourceProvider.getGraph()).shortestPath(vertices.get("marko"),vertices.get("ripple"));
+        EvaluableScriptQuery compiledScript = new GremlinQueryBuilder(sourceProvider.getGraph()).shortestPath(vertices.get("marko"),vertices.get("ripple"));
         Object result = compiledScript.eval();
         List paths = IteratorUtils.asList(result);
         assert(paths.size() > 0);
@@ -52,7 +52,7 @@ public class QueryBuilderTest {
 
     @Test
     public void ageMean() throws ScriptException {
-        EvaluableScriptQuery compiledScript = new QueryBuilder(sourceProvider.getGraph()).query("g.V().values('age').mean()");
+        EvaluableScriptQuery compiledScript = new GremlinQueryBuilder(sourceProvider.getGraph()).query("g.V().values('age').mean()");
         Object result = compiledScript.eval();
         List mean = IteratorUtils.asList(result);
         assert(mean.size() > 0);

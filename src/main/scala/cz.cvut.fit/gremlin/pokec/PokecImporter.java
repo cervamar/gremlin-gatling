@@ -6,11 +6,17 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.shaded.kryo.Kryo;
+import org.apache.tinkerpop.shaded.kryo.io.Input;
+import org.apache.tinkerpop.shaded.kryo.io.Output;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -33,6 +39,9 @@ public class PokecImporter {
     static List<Integer> toStore = Arrays.asList(0, 3, 4, 7);
     static Map<Integer, String> INDEXED_COLUMNS = toStore.stream().collect(Collectors.toMap(Function.identity(), c -> COLUMN_NAMES.get(c)));
 
+    private static final Log LOG = LogFactory.getLog(PokecImporter.class);
+    private static Vertex lastVertex;
+
 
     public static List<Map<String, String>> readRecords(File inputFile) throws IOException {
         List<Map<String, String>> ret = new ArrayList<>();
@@ -48,27 +57,33 @@ public class PokecImporter {
         return ret;
     }
 
-    public static Map<String, Record> readAndStoreVerticesRecords(File inputFile, Graph graph) throws IOException {
-        return readAndStoreRecords(inputFile, graph, true);
+    public static Map<String, Object> readAndStoreVerticesRecords(File inputFile, Graph graph) throws IOException {
+        return readAndStoreRecords(inputFile, graph, true, null);
     }
 
-    public static Map<String, Record> readAndStoreEdgeRecords(File inputFile, Graph graph) throws IOException {
-        return readAndStoreRecords(inputFile, graph, true);
+    public static Map<String, Object> readAndStoreEdgeRecords(File inputFile, Graph graph, Map<String, Object> idMap) throws IOException {
+        return readAndStoreRecords(inputFile, graph, false, idMap);
     }
 
 
-    private static Map<String, Record> readAndStoreRecords(File inputFile, Graph graph, boolean vertex) throws IOException {
-        Map<String, Record> ret = new HashMap<>();
+    private static Map<String, Object> readAndStoreRecords(File inputFile, Graph graph, boolean vertex, Map<String, Object> idMap) throws IOException {
+        Map<String, Object> ret = new HashMap<>();
         LineIterator it = FileUtils.lineIterator(inputFile, "UTF-8");
+        int cnt = 0;
         try {
             while (it.hasNext()) {
+                if((cnt++)%1000 == 0) {
+                    LOG.info("Processed " + cnt + " records");
+                }
                 String line = it.nextLine();
                 if(vertex) {
-                    Record record = loadVertexToGraph(graph, createVertexRecord(line));
-                    ret.put(record.getId(), record);
+                    Optional<Record> record = loadVertexToGraph(graph, createVertexRecord(line));
+                    if(record.isPresent()) {
+                        ret.put(record.get().getId(), record.get().getDatabaseId());
+                    }
                 }
                 else {
-                    loadEdgeToGraph(graph, line.split("\\t"));
+                    loadEdgeToGraph(graph, line.split("\\t"), idMap);
                 }
             }
         } finally {
@@ -77,10 +92,17 @@ public class PokecImporter {
         return ret;
     }
 
-    private static void loadEdgeToGraph(Graph graph, String[] split) {
+    private static void loadEdgeToGraph(Graph graph, String[] split, Map<String, Object> idMap) {
         assert (split.length == 2);
-        Vertex to = graph.vertices(split[0]).next();
-        Vertex from = graph.vertices(split[1]).next();
+        Object fromId = idMap.get(split[0]);
+        Object toId = idMap.get(split[1]);
+        if (fromId == null || toId == null) {
+            LOG.warn("Creating edge between not-existing vertices " + split[0] + " --> " + split[1]);
+            return;
+        }
+        Vertex from = lastVertex != null && lastVertex.property("id").equals(fromId) ? lastVertex : graph.vertices(fromId).next();
+        lastVertex = from;
+        Vertex to = graph.vertices(toId).next();
         from.addEdge("likes", to);
     }
 
@@ -96,9 +118,11 @@ public class PokecImporter {
         return ret;
     }
 
-    public static Record loadVertexToGraph(Graph graph, Map<String, String> record) {
-        Vertex vertex = graph.addVertex(record.entrySet().stream().flatMap(x -> Stream.of(x.getKey(), x.getValue())).toArray());
-        return new Record(record.get("id"), vertex.id());
+    public static Optional<Record> loadVertexToGraph(Graph graph, Map<String, String> record) {
+        if(Integer.parseInt(record.get("id")) > 100000) return Optional.empty();
+        Object[] properties = ArrayUtils.addAll(record.entrySet().stream().flatMap(x -> Stream.of(x.getKey(), x.getValue())).toArray(), T.label, "person");
+        Vertex vertex = graph.addVertex(properties);
+        return Optional.of(new Record(record.get("id"), vertex.id()));
     }
 
     @Getter
@@ -108,6 +132,23 @@ public class PokecImporter {
     public static class Record {
         private String id;
         private Object databaseId;
+    }
+
+    public static Map<String, Object> readIdMapFromFile (String kryoFilePath) throws FileNotFoundException {
+        Kryo kryo = new Kryo();
+        try (Input idMap = new Input(new FileInputStream(kryoFilePath))){
+            return (Map<String, Object>) kryo.readObject(idMap,  HashMap.class);
+        }
+    }
+
+    public static void saveIdMaptoFile(Map <String, Object> ids, String pathToFile) throws FileNotFoundException {
+        Kryo kryo = new Kryo();
+        File toStore = new File(pathToFile);
+        FileUtils.deleteQuietly(toStore);
+        try(Output output = new Output(new FileOutputStream(toStore))) {
+            kryo.writeObject(output, ids);
+            output.close();
+        }
     }
 
 }
