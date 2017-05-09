@@ -2,7 +2,7 @@ package cz.cvut.fit.gremlin.pokec;
 
 import cz.cvut.fit.gremlin.core.EvaluableScriptQuery;
 import cz.cvut.fit.gremlin.core.GremlinQueryBuilder;
-import cz.cvut.fit.gremlin.sources.TestSourceProvider;
+import cz.cvut.fit.gremlin.utils.TestSourceProvider;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
