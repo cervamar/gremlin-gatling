@@ -1,6 +1,6 @@
 package cz.cvut.fit.gremlin.core;
 
-import cz.cvut.fit.gremlin.sources.TestSourceProvider;
+import cz.cvut.fit.gremlin.utils.TestSourceProvider;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.junit.After;

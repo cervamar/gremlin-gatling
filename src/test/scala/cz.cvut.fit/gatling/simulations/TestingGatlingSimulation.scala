@@ -8,7 +8,7 @@ import io.gatling.core.Predef._
 /**
   * Created by cerva on 14/04/2017.
   */
-class GatlingSimulation  extends Simulation {
+class TestingGatlingSimulation  extends Simulation {
 
   def loadGraphDefinition(path: String) = {
     new GenericGraphSource(path).openGraph()
@@ -23,7 +23,7 @@ class GatlingSimulation  extends Simulation {
   }
 
   setUp(
-    scn.inject(atOnceUsers(5))
+    scn.inject(atOnceUsers(10))
   ).protocols(gremlinProtocol)
 
   //graph.close()

@@ -78,6 +78,11 @@
       <artifactId>orientdb-gremlin</artifactId>
       <version>3.2.3.0</version>
     </dependency>
+    <dependency>
+      <groupId>com.steelbridgelabs.oss</groupId>
+      <artifactId>neo4j-gremlin-bolt</artifactId>
+      <version>0.2.23</version>
+    </dependency>
     <!-- Gatling -->
     <dependency>
       <groupId>io.gatling</groupId>

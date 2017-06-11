@@ -1,6 +1,5 @@
-package cz.cvut.fit.gremlin.sources;
+package cz.cvut.fit.gremlin.utils;
 
-import cz.cvut.fit.gremlin.utils.GraphUtils;
 import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
