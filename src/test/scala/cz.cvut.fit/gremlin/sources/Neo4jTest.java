@@ -1,23 +1,26 @@
 package cz.cvut.fit.gremlin.sources;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.script.Bindings;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+
 import cz.cvut.fit.gremlin.utils.GraphUtils;
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-
-import javax.script.Bindings;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
   * Created by cerva on 11/04/2017.
   */
 
+@Ignore
 public class Neo4jTest {
 
   static Graph graph =  new GenericGraphSource("src/test/resources/neo4j-standalone.properties").openGraph();

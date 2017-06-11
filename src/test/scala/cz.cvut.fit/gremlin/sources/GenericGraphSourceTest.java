@@ -1,18 +1,19 @@
 package cz.cvut.fit.gremlin.sources;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.script.Bindings;
+import javax.script.CompiledScript;
+import javax.script.ScriptException;
+
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerFactory;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.junit.Test;
-
-import javax.script.Bindings;
-import javax.script.CompiledScript;
-import javax.script.ScriptException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.hasId;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
@@ -47,21 +48,11 @@ public class GenericGraphSourceTest {
     //bindings.put("results", results);
     CompiledScript compliedQuery = engine.compile(query);
     System.out.println(compliedQuery.eval(bindings));
-
-    //System.out.println(results);
-
-    /*String label = "france";
-    graph.addVertex(label);*/
-/*     paris = graph + label
-    graph + "germany"
-    val vertices = graph.V()
-    assert(graph.V(paris.id()).exists())
-    val labeledVertices = graph.V.hasLabel(label)
-    println(labeledVertices.count.head())
-    println("paris has id" + paris.id())
-    println(graph.V.value("id").toList)
-    graph.tx().commit()
-    graph.close()*/
   }
+
+
+
+
+
 
 }

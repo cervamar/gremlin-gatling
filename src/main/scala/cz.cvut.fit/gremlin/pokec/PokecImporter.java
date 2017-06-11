@@ -1,5 +1,21 @@
 package cz.cvut.fit.gremlin.pokec;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,12 +31,6 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.shaded.kryo.Kryo;
 import org.apache.tinkerpop.shaded.kryo.io.Input;
 import org.apache.tinkerpop.shaded.kryo.io.Output;
-
-import java.io.*;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created on 5/4/2017.
@@ -97,12 +107,12 @@ public class PokecImporter {
         Object fromId = idMap.get(split[0]);
         Object toId = idMap.get(split[1]);
         if (fromId == null || toId == null) {
-            LOG.warn("Creating edge between not-existing vertices " + split[0] + " --> " + split[1]);
+            //LOG.debug("Creating edge between not-existing vertices " + split[0] + " --> " + split[1]);
             return;
         }
-        Vertex from = lastVertex != null && lastVertex.property("id").equals(fromId) ? lastVertex : graph.vertices(fromId).next();
-        lastVertex = from;
-        Vertex to = graph.vertices(toId).next();
+        Iterator<Vertex> it = graph.vertices(fromId, toId);
+        Vertex from = it.next();
+        Vertex to = it.next();
         from.addEdge("likes", to);
     }
 

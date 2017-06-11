@@ -60,7 +60,7 @@ class GremlinActionActor(
     val startTime = now()
     val resultCode = call(compliedQuery, bindings)
     val endTime = now()
-    printResult(queryResult)
+    printResult(queryResult, endTime - startTime)
     val timings = ResponseTimings(startTime, endTime)
     if (resultCode >= 200 && resultCode <= 299)
       statsEngine.logResponse(session, requestName.apply(session).get, timings, Status("OK"), None, None)
@@ -89,7 +89,7 @@ class GremlinActionActor(
     compiledScript.eval(bindings)
   }
 
-  def printResult(result: Object) {
-    System.out.println(IteratorUtils.asList(result))
+  def printResult(result: Object, time: Long) {
+    System.out.println(IteratorUtils.asList(result).toString + " in time " + time)
   }
 }
