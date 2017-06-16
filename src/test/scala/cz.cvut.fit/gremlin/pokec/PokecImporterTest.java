@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import cz.cvut.fit.gremlin.core.EvaluableScriptQuery;
 import cz.cvut.fit.gremlin.core.GremlinQueryBuilder;
-import cz.cvut.fit.gremlin.sources.TestSourceProvider;
+import cz.cvut.fit.gremlin.utils.TestSourceProvider;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
@@ -41,6 +41,7 @@ public class PokecImporterTest {
         assert (records.size() == SIZE);
     }
 
+    @Ignore
     @Test
     public void fullLoad() throws Exception {
         File toProcess = new File(SRC_TEST_RESOURCES_POKEC + "profiles-" + SIZE + ".txt");
@@ -58,6 +59,7 @@ public class PokecImporterTest {
         graph.close();
     }
 
+    @Ignore
     @Test()
     public void fullLoadGraph() throws Exception {
         TestSourceProvider.GraphSource graphSource = new TestSourceProvider.GraphInMemorySource("src/test/resources/neo4j-standalone.properties");
@@ -138,7 +140,7 @@ public class PokecImporterTest {
         long startTime = System.currentTimeMillis();
         Object result = compiledScript.eval();
         long endTime = System.currentTimeMillis();
-        System.out.println(endTime-startTime);
+        System.out.println("execution time:" + (endTime-startTime));
         List paths = IteratorUtils.asList(result);
         System.out.println(paths);
         graphSource.clean();

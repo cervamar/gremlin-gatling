@@ -2,6 +2,7 @@ package cz.cvut.fit.gremlin.core
 
 import javax.script.Bindings
 
+import org.apache.tinkerpop.gremlin.driver.Client
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine
 
 /**
@@ -16,5 +17,11 @@ trait EvaluableScript {
 class EvaluableScriptQuery(query: String, bindings: Bindings, engine:GremlinGroovyScriptEngine) extends EvaluableScript {
   override def eval(): AnyRef = {
       engine.eval(query, bindings)
+  }
+}
+
+class ServerQuery(query: String, client: Client) extends EvaluableScript {
+  override def eval(): AnyRef = {
+    client.submit(query);
   }
 }

@@ -40,6 +40,11 @@
       <version>${gremlin.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.tinkerpop</groupId>
+      <artifactId>gremlin-driver</artifactId>
+      <version>${gremlin.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.janusgraph</groupId>
       <artifactId>janusgraph-core</artifactId>
       <version>0.1.0</version>

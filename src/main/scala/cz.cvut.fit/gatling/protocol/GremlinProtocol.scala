@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import io.gatling.core.CoreComponents
 import io.gatling.core.config.GatlingConfiguration
 import io.gatling.core.protocol.{Protocol, ProtocolKey}
-import org.apache.tinkerpop.gremlin.structure.Graph
+import org.apache.tinkerpop.gremlin.driver.Client
 
 /**
   * Created by cerva on 13/04/2017.
@@ -27,6 +27,7 @@ object GremlinProtocol {
   }
 }
 
-case class GremlinProtocol (graph : Graph) extends Protocol {
+case class GremlinProtocol (client : Client) extends Protocol {
+  //val client : Nothing = cluster.connect
   type Components = GremlinComponents
 }

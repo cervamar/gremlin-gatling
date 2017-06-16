@@ -1,21 +1,28 @@
 package cz.cvut.fit.gremlin.sources;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import javax.script.Bindings;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+
 import cz.cvut.fit.gremlin.utils.TestSourceProvider;
+import org.apache.tinkerpop.gremlin.driver.Client;
+import org.apache.tinkerpop.gremlin.driver.Cluster;
+import org.apache.tinkerpop.gremlin.driver.Result;
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerFactory;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
+import org.junit.Ignore;
 import org.junit.Test;
-
-import javax.script.Bindings;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import static org.apache.tinkerpop.gremlin.structure.Direction.OUT;
 
@@ -23,6 +30,7 @@ import static org.apache.tinkerpop.gremlin.structure.Direction.OUT;
   * Created by cerva on 11/04/2017.
   */
 
+@Ignore
 public class TinkergraphSourceTest {
 
   @Test
@@ -77,6 +85,35 @@ public class TinkergraphSourceTest {
     }
     from.clean();
     to.clean();
+  }
+
+  @Test
+  public void random() throws FileNotFoundException, ExecutionException, InterruptedException {
+    Cluster cluster = Cluster.build(new File("C:\\Users\\marek.cervak\\diplomka\\apache-tinkerpop-gremlin-console-3.2.4\\conf\\remote.yaml")).create();
+    Client  client = cluster.connect();
+
+      //ResultSet result2 = client.submit("g.V(1).repeat(out().simplePath()).until(hasId(5)).path().limit(1)");
+    final boolean[] exit = {false};
+      Long time = System.currentTimeMillis();
+    List<Result> result = client.submit("g.V(1).repeat(out().simplePath()).until(hasId(98677)).path().limit(1)").all().get();
+    Long time2 = System.currentTimeMillis();
+    System.out.println("it took " + (time2 - time));
+    result.stream().forEach(result1 -> System.out.println(result1));
+    client.close();
+    cluster.close();
+/*      CompletableFuture<ResultSet> resultSet = client.submitAsync("g.V(1).repeat(out().simplePath()).until(hasId(98677)).path().limit(1)");
+      resultSet.thenAccept(new Consumer<ResultSet>() {
+        @Override
+        public void accept(ResultSet results) {
+          Long time2 = System.currentTimeMillis();
+          System.out.println("it took " + (time2 - time));
+          results.().forEach(result -> System.out.println(result));
+          client.close();
+          cluster.close();
+          exit[0] = true;
+        }
+      });
+      while (exit[0] != true);*/
   }
   
 

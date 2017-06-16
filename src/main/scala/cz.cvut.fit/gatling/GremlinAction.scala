@@ -1,6 +1,8 @@
 package cz.cvut.fit.gatling
 
 
+import java.util
+import java.util.function.Consumer
 import javax.script.{Bindings, CompiledScript, ScriptException}
 
 import akka.actor.{ActorSystem, Props}
@@ -11,9 +13,8 @@ import io.gatling.core.session.{Expression, Session}
 import io.gatling.core.stats.StatsEngine
 import io.gatling.core.stats.message.ResponseTimings
 import io.gatling.core.util.NameGen
+import org.apache.tinkerpop.gremlin.driver.Result
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine
-import org.apache.tinkerpop.gremlin.structure.Graph
-import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils
 
 
 /**
@@ -41,26 +42,14 @@ class GremlinActionActor(
      val next: Action)  extends ActionActor {
 
   val engine = new GremlinGroovyScriptEngine
-  var queryResult = new Object
-
-  def compileQuery(resolvedQuery: String, graph: Graph) = {
-    engine.compile(resolvedQuery)
-  }
-
-  def createBindings() = {
-    val bindings = engine.createBindings
-    bindings.put("g", protocol.graph.traversal)
-    bindings
-  }
+  var queryResult : util.List[Result] = null;
 
   override def execute(session: Session) = {
     val resolvedQuery = gremlinQuery.apply(session).get
-    val compliedQuery = compileQuery(resolvedQuery, protocol.graph)
-    val bindings = createBindings();
     val startTime = now()
-    val resultCode = call(compliedQuery, bindings)
+    val resultCode = call(resolvedQuery)
     val endTime = now()
-    printResult(queryResult, endTime - startTime)
+    printResult(queryResult, endTime - startTime, resolvedQuery)
     val timings = ResponseTimings(startTime, endTime)
     if (resultCode >= 200 && resultCode <= 299)
       statsEngine.logResponse(session, requestName.apply(session).get, timings, Status("OK"), None, None)
@@ -69,9 +58,9 @@ class GremlinActionActor(
     next ! session
   }
 
-  def call(compliedQuery: CompiledScript, bindings: Bindings): Int = {
+  def call(query : String): Int = {
     try {
-      queryResult = evaluate(compliedQuery, bindings);
+      queryResult = protocol.client.submit(query).all().get();
       200
     }
       catch {
@@ -89,7 +78,10 @@ class GremlinActionActor(
     compiledScript.eval(bindings)
   }
 
-  def printResult(result: Object, time: Long) {
-    System.out.println(IteratorUtils.asList(result).toString + " in time " + time)
+  def printResult(result: util.List[Result], time: Long, query: String) {
+    result.forEach( new Consumer[Result] {
+      override def accept(t: Result): Unit = println(t);
+    })
+    println(query + "processed in time " + time)
   }
 }

@@ -1,23 +1,30 @@
 package cz.cvut.fit.gremlin.core;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.script.ScriptException;
+
 import cz.cvut.fit.gremlin.utils.TestSourceProvider;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import javax.script.ScriptException;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * Created on 5/3/2017.
  *
  * @author Marek.Cervak
  */
+@Ignore
 @RunWith(Parameterized.class)
 public class GremlinQueryBuilderTest {
     Map<String, Object> vertices = new HashMap<>();

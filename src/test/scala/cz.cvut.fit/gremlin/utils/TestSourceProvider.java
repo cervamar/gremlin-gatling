@@ -1,10 +1,5 @@
 package cz.cvut.fit.gremlin.utils;
 
-import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
@@ -15,6 +10,11 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
 
 /**
  * Created on 5/3/2017.
@@ -78,7 +78,7 @@ public interface TestSourceProvider {
         @Override
         public void clean() throws Exception {
             getGraph().close();
-            Path rootPath = Paths.get("target/localdb");
+            Path rootPath = Paths.get(dbPath);
             Files.walk(rootPath, FileVisitOption.FOLLOW_LINKS)
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
