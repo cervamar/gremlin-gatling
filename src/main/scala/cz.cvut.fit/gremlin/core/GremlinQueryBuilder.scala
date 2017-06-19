@@ -10,38 +10,39 @@ import org.apache.tinkerpop.gremlin.structure.{Graph, Vertex}
   *
   * @author Marek.Cervak67
   */
-class GremlinQueryBuilder(graph: Graph) {
+trait GremlinQuery {
+    def getQuery() : String
+    def getVariables(): Map[String, AnyRef]
+}
 
-  import GremlinQueryBuilder._
-  val engine = new GremlinGroovyScriptEngine()
-  engine.put(GRAPH, graph)
-  engine.put(TRAVERSAL, graph.traversal())
+case class GremlinQueryHolder(str: String, map: Map[String, AnyRef]) extends GremlinQuery {
+  override def getQuery(): String = str
 
-  def getLocalBindings(): Bindings = {
-    engine.getBindings(ScriptContext.ENGINE_SCOPE)
+  override def getVariables(): Map[String, AnyRef] = map
+}
+
+class GremlinQueryBuilder() {
+
+  def shortestPath(vertexIdFrom:Object, vertexIdTo:Object) : GremlinQuery = {
+    val variables = Map("vertexId" -> vertexIdFrom, "vertexId2" -> vertexIdTo)
+    GremlinQueryHolder("g.V(vertexId).repeat(out().simplePath()).until(hasId(vertexId2)).path().limit(1)", variables)
+  }
+/*
+  def addVertex(vertex:Vertex) : GremlinQuery = {
+    new GremlinQuery("graph.add")
+  }
+*/
+  def query(query:String) : GremlinQuery = {
+    new GremlinQueryHolder(query, Map.empty)
   }
 
-  def shortestPath(vertexIdFrom:Object, vertexIdTo:Object) : EvaluableScriptQuery = {
-    val bindings = getLocalBindings
-    bindings.put("vertexId", vertexIdFrom)
-    bindings.put("vertexId2", vertexIdTo)
-    new EvaluableScriptQuery("g.V(vertexId).repeat(out().simplePath()).until(hasId(vertexId2)).path().limit(1)", bindings, engine)
+  def neighbors(vertexIdFrom:Object, distance:Int) : GremlinQuery = {
+    val variables = Map("vertexId" -> vertexIdFrom, "distance" -> Int.box(distance))
+    GremlinQueryHolder("g.V(vertexId).repeat(out()).times(distance).simplePath()", variables)
   }
 
-  def addVertex(vertex:Vertex) : EvaluableScriptQuery = {
-    val bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE)
-    new EvaluableScriptQuery("graph.add", bindings, engine)
-  }
-
-  def query(query:String) : EvaluableScriptQuery = {
-    val bindings = getLocalBindings
-    new EvaluableScriptQuery(query, bindings, engine)
-  }
 
 }
 
-object GremlinQueryBuilder {
-  val GRAPH = "graph"
-  val TRAVERSAL = "g"
-}
+
 

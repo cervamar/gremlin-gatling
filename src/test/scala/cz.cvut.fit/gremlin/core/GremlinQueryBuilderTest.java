@@ -29,6 +29,9 @@ import org.junit.runners.Parameterized;
 public class GremlinQueryBuilderTest {
     Map<String, Object> vertices = new HashMap<>();
 
+    GremlinQueryBuilder gremlinQueryBuilder = new GremlinQueryBuilder();
+    ExecutorQuery executorQuery;
+
     @Parameterized.Parameter
     public TestSourceProvider sourceProvider;
 
@@ -45,12 +48,13 @@ public class GremlinQueryBuilderTest {
         sourceProvider.initGraph();
         sourceProvider.fill();
         vertices = sourceProvider.updateIds();
+        executorQuery = new ExecutorQuery(sourceProvider.getGraph());
     }
 
     @Test
     public void shortestPath() throws ScriptException {
-        EvaluableScriptQuery compiledScript = new GremlinQueryBuilder(sourceProvider.getGraph()).shortestPath(vertices.get("marko"),vertices.get("ripple"));
-        Object result = compiledScript.eval();
+        GremlinQuery query = gremlinQueryBuilder.shortestPath(vertices.get("marko"), vertices.get("ripple"));
+        Object result = executorQuery.eval(query);
         List paths = IteratorUtils.asList(result);
         assert(paths.size() > 0);
         assert(((Path) paths.get(0)).size() == 3);
@@ -59,11 +63,23 @@ public class GremlinQueryBuilderTest {
 
     @Test
     public void ageMean() throws ScriptException {
-        EvaluableScriptQuery compiledScript = new GremlinQueryBuilder(sourceProvider.getGraph()).query("g.V().values('age').mean()");
-        Object result = compiledScript.eval();
+        GremlinQuery query = gremlinQueryBuilder.query("g.V().values('age').mean()");
+        Object result = executorQuery.eval(query);
         List mean = IteratorUtils.asList(result);
-        assert(mean.size() > 0);
+        assert(mean.size() == 1);
         assert(((double) mean.get(0)) == 30.75);
+    }
+
+    @Test
+    public void getNeighbors() throws ScriptException {
+        GremlinQuery query = gremlinQueryBuilder.neighbors(vertices.get("marko"), 1);
+        Object result = executorQuery.eval(query);
+        List results = IteratorUtils.asList(result);
+        assert(results.size() == 3);
+        query = gremlinQueryBuilder.neighbors(vertices.get("marko"), 2);
+        result = executorQuery.eval(query);
+        results = IteratorUtils.asList(result);
+        assert(results.size() == 2);
     }
 
     @After

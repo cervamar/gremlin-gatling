@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import cz.cvut.fit.gremlin.core.EvaluableScriptQuery;
+import cz.cvut.fit.gremlin.core.ExecutorQuery;
+import cz.cvut.fit.gremlin.core.GremlinQuery;
 import cz.cvut.fit.gremlin.core.GremlinQueryBuilder;
 import cz.cvut.fit.gremlin.utils.TestSourceProvider;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -135,10 +136,11 @@ public class PokecImporterTest {
         //EvaluableScriptQuery executable = new GremlinQueryBuilder(graphSource.getGraph()).shortestPath(id1, id2);
        // executable.eval();
         //Object result = executable.getResult();
-
-        EvaluableScriptQuery compiledScript = new GremlinQueryBuilder(graphSource.getGraph()).shortestPath(id1,id2);
+        GremlinQueryBuilder gremlinQueryBuilder = new GremlinQueryBuilder();
+        GremlinQuery gremlinQuery = gremlinQueryBuilder.shortestPath(id1,id2);
+        ExecutorQuery executorQuery = new ExecutorQuery(graphSource.getGraph());
         long startTime = System.currentTimeMillis();
-        Object result = compiledScript.eval();
+        Object result = executorQuery.eval(gremlinQuery);
         long endTime = System.currentTimeMillis();
         System.out.println("execution time:" + (endTime-startTime));
         List paths = IteratorUtils.asList(result);

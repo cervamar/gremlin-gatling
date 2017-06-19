@@ -25,7 +25,7 @@ object GremlinAction extends NameGen {
 
   def apply(requestName: Expression[String], gremlinQuery: Expression[String], protocol: GremlinProtocol, system: ActorSystem, statsEngine: StatsEngine, next: Action) = {
     val actor = system.actorOf(GremlinActionActor.props(requestName, gremlinQuery, protocol, statsEngine, next))
-    new ExitableActorDelegatingAction(genName("Lambda"), statsEngine, next, actor)
+    new ExitableActorDelegatingAction(genName("Gremlin"), statsEngine, next, actor)
   }
 }
 
