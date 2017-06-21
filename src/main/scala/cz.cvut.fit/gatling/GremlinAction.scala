@@ -51,7 +51,7 @@ class GremlinActionActor(
     val endTime = now()
     printResult(queryResult, endTime - startTime, resolvedQuery)
     val timings = ResponseTimings(startTime, endTime)
-    if (resultCode >= 200 && resultCode <= 299)
+    if (resultCode == 0)
       statsEngine.logResponse(session, requestName.apply(session).get, timings, Status("OK"), None, None)
     else
       statsEngine.logResponse(session, requestName.apply(session).get, timings, Status("KO"), None, None)
@@ -61,7 +61,7 @@ class GremlinActionActor(
   def call(query : String): Int = {
     try {
       queryResult = protocol.client.submit(query).all().get();
-      200
+      0
     }
       catch {
       case ex: Exception =>

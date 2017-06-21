@@ -7,7 +7,7 @@ import io.gatling.core.Predef._
 /**
   * Created by cerva on 14/04/2017.
   */
-class BasicSimulation  extends Simulation {
+class BasicSimulation extends Simulation {
 
   val gremlinProtocol = new GremlinProtocol(new GremlinClient().getClient)
 

@@ -1,10 +1,5 @@
 package cz.cvut.fit.gremlin.core
 
-import javax.script.{Bindings, ScriptContext}
-
-import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine
-import org.apache.tinkerpop.gremlin.structure.{Graph, Vertex}
-
 /**
   * Created on 5/3/2017.
   *
@@ -32,6 +27,11 @@ class GremlinQueryBuilder() {
     new GremlinQuery("graph.add")
   }
 */
+  def getVertex(vertexId:Object) : GremlinQuery = {
+    val variables = Map("vertexId" -> vertexId)
+    new GremlinQueryHolder("g.V(vertexId)", variables);
+  }
+
   def query(query:String) : GremlinQuery = {
     new GremlinQueryHolder(query, Map.empty)
   }

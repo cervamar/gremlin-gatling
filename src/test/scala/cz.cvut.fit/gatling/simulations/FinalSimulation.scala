@@ -18,6 +18,7 @@ class FinalSimulation  extends Simulation {
     //exec(gremlin("query").query("g.V(\"1\").repeat(out().simplePath()).until(hasId(\"5\")).path().limit(1)"))
     //exec(gremlin("query").query("g.V().has(\"name\", \"marko\").repeat(out().simplePath()).until(has(\"name\", \"ripple\")).path().limit(1)"))
     feed(feeder).exec(gremlin("query").query("g.V(${id})"))
+    .exec(gremlin("query").query("g.V(${id})"))
   }
 
   setUp(
