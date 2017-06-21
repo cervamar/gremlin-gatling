@@ -2,10 +2,18 @@ package cz.cvut.fit.gremlin.sources;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
@@ -15,6 +23,7 @@ import cz.cvut.fit.gremlin.utils.TestSourceProvider;
 import org.apache.tinkerpop.gremlin.driver.Client;
 import org.apache.tinkerpop.gremlin.driver.Cluster;
 import org.apache.tinkerpop.gremlin.driver.Result;
+import org.apache.tinkerpop.gremlin.driver.ResultSet;
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -32,6 +41,9 @@ import static org.apache.tinkerpop.gremlin.structure.Direction.OUT;
 
 @Ignore
 public class TinkergraphSourceTest {
+
+  static Long time;
+  ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
 
   @Test
   public void shortestPath() throws ScriptException {
@@ -93,29 +105,59 @@ public class TinkergraphSourceTest {
     Client  client = cluster.connect();
 
       //ResultSet result2 = client.submit("g.V(1).repeat(out().simplePath()).until(hasId(5)).path().limit(1)");
-    final boolean[] exit = {false};
-      Long time = System.currentTimeMillis();
-    List<Result> result = client.submit("g.V(1).repeat(out().simplePath()).until(hasId(98677)).path().limit(1)").all().get();
+    time = System.currentTimeMillis();
+/*    List<Result> result = client.submit("g.V(18).repeat(out().simplePath()).until(hasId(98677)).path().limit(1)").all().get();
     Long time2 = System.currentTimeMillis();
     System.out.println("it took " + (time2 - time));
     result.stream().forEach(result1 -> System.out.println(result1));
     client.close();
-    cluster.close();
-/*      CompletableFuture<ResultSet> resultSet = client.submitAsync("g.V(1).repeat(out().simplePath()).until(hasId(98677)).path().limit(1)");
+    cluster.close();*/
+      CompletableFuture<ResultSet> resultSet = client.submitAsync("g.V(1).repeat(out().simplePath()).until(hasId(98677)).path().limit(1)");
       resultSet.thenAccept(new Consumer<ResultSet>() {
         @Override
         public void accept(ResultSet results) {
-          Long time2 = System.currentTimeMillis();
-          System.out.println("it took " + (time2 - time));
-          results.().forEach(result -> System.out.println(result));
-          client.close();
-          cluster.close();
-          exit[0] = true;
-        }
-      });
-      while (exit[0] != true);*/
+          results.all()
+                          .acceptEither(timeoutAfter(2, TimeUnit.SECONDS), new Consumer<List<Result>>() {
+            @Override
+            public void accept(List<Result> results) {
+              Long time2 = System.currentTimeMillis();
+              System.out.println("it took " + (time2 - time));
+              if(results == null) {
+
+              }
+              else {
+                results.stream().forEach(result -> System.out.println(result));
+              }
+              client.close();
+              cluster.close();
+            }
+          });
+/*                  .thenAccept(new Consumer<List<Result>>() {
+                    @Override
+                    public void accept(List<Result> results) {
+                      Long time2 = System.currentTimeMillis();
+                      System.out.println("it took " + (time2 - time));
+                      results.stream().forEach(result -> System.out.println(result));
+                      client.close();
+                      cluster.close();
+                    }
+                  });*/
+        }});
+    CompletableFuture<String> result = new CompletableFuture<String>();
+    executor.schedule(() -> result.complete("ahoj"), 15, TimeUnit.SECONDS);
+    System.out.println(result.get());
+    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+    Date date = new Date();
+    System.out.println(dateFormat.format(date) + " done"); //2016/11/16 12:08:43
+
   }
-  
+
+
+  public <T> CompletableFuture<T> timeoutAfter(long timeout, TimeUnit unit) {
+    CompletableFuture<T> result = new CompletableFuture<T>();
+    executor.schedule(() -> result.complete(null), timeout, unit);
+    return result;
+  }
 
 
 }

@@ -13,7 +13,7 @@ import io.gatling.core.session.{Expression, Session}
 import io.gatling.core.stats.StatsEngine
 import io.gatling.core.stats.message.ResponseTimings
 import io.gatling.core.util.NameGen
-import org.apache.tinkerpop.gremlin.driver.Result
+import org.apache.tinkerpop.gremlin.driver.{Result, ResultSet}
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine
 
 
@@ -43,19 +43,28 @@ class GremlinActionActor(
 
   val engine = new GremlinGroovyScriptEngine
   var queryResult : util.List[Result] = null;
+  var startTime = 0L;
+
+  var resolvedQuery = "sdf"
 
   override def execute(session: Session) = {
-    val resolvedQuery = gremlinQuery.apply(session).get
-    val startTime = now()
-    val resultCode = call(resolvedQuery)
-    val endTime = now()
-    printResult(queryResult, endTime - startTime, resolvedQuery)
-    val timings = ResponseTimings(startTime, endTime)
-    if (resultCode == 0)
-      statsEngine.logResponse(session, requestName.apply(session).get, timings, Status("OK"), None, None)
-    else
-      statsEngine.logResponse(session, requestName.apply(session).get, timings, Status("KO"), None, None)
-    next ! session
+    resolvedQuery = gremlinQuery.apply(session).get
+    println("User " + session.userId + " calling " + resolvedQuery)
+    startTime = now()
+    val response = protocol.client.submitAsync(resolvedQuery)
+    response.thenAccept(new Consumer[ResultSet] {
+      override def accept(t: ResultSet): Unit = {
+        t.all().thenAccept( new Consumer[util.List[Result]] {
+          override def accept(t: util.List[Result]): Unit = {
+            val endTime = now()
+            val timings = ResponseTimings(startTime, endTime)
+            printResult(t, timings.responseTime, resolvedQuery)
+            statsEngine.logResponse(session, requestName.apply(session).get, timings, Status("OK"), None, None)
+            next ! session
+          }
+        })
+        }
+    })
   }
 
   def call(query : String): Int = {

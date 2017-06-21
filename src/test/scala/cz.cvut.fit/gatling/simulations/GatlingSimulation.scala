@@ -12,7 +12,7 @@ class GatlingSimulation  extends Simulation {
   val gremlinProtocol = new GremlinProtocol(new GremlinClient().getClient)
 
   val r = scala.util.Random
-  val feeder = Iterator.continually(Map("id" -> ("\"" + r.nextInt(20) + "\"")))
+  val feeder = Iterator.continually(Map("id" -> ("\"" + (r.nextInt(13) + "\""))))
 
   def scn = scenario("Scenario1").repeat(3){
     //exec(gremlin("query").query("g.V(\"1\").repeat(out().simplePath()).until(hasId(\"5\")).path().limit(1)"))
@@ -22,7 +22,7 @@ class GatlingSimulation  extends Simulation {
   }
 
   setUp(
-    scn.inject(atOnceUsers(3))
+    scn.inject(atOnceUsers(2))
   ).protocols(gremlinProtocol)
 
 }
