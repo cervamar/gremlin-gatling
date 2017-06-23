@@ -8,5 +8,7 @@ import io.gatling.core.session.Expression
   * @author Marek.Cervak
   */
 case class Gremlin(requestName: Expression[String]) {
-     def query(query: Expression[String]) = new GremlinBuilder(requestName, query)
+     def query(query: Expression[String]) = new GremlinGenericQueryBuilder(requestName, query)
+     def getVertex(id: Expression[String]) = new GremlinVertexBuilder(requestName, id)
+     def getNeighbours(id: Expression[String], distance:Int) = new GremlinNeighborsBuilder(requestName, id, distance)
 }

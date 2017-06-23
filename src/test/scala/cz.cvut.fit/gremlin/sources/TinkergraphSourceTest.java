@@ -152,6 +152,53 @@ public class TinkergraphSourceTest {
 
   }
 
+  @Test
+  public void synchronous() throws FileNotFoundException, ExecutionException, InterruptedException {
+    Cluster cluster = Cluster.build(new File("C:\\Users\\marek.cervak\\diplomka\\apache-tinkerpop-gremlin-console-3.2.4\\conf\\remote.yaml")).create();
+    Client  client = cluster.connect();
+
+    //ResultSet result2 = client.submit("g.V(1).repeat(out().simplePath()).until(hasId(5)).path().limit(1)");
+    time = System.currentTimeMillis();
+/*    List<Result> result = client.submit("g.V(18).repeat(out().simplePath()).until(hasId(98677)).path().limit(1)").all().get();
+    Long time2 = System.currentTimeMillis();
+    System.out.println("it took " + (time2 - time));
+    result.stream().forEach(result1 -> System.out.println(result1));
+    client.close();
+    cluster.close();*/
+    CompletableFuture<ResultSet> resultSet = client.submitAsync("g.V(18).repeat(out().simplePath()).until(hasId(98677)).path().limit(1)");
+    resultSet.thenAccept(new Consumer<ResultSet>() {
+      @Override
+      public void accept(ResultSet results) {
+        results.all()
+                .thenAccept(new Consumer<List<Result>>() {
+                    @Override
+                    public void accept(List<Result> results) {
+                      Long time2 = System.currentTimeMillis();
+                      System.out.println("it took " + (time2 - time));
+                      results.stream().forEach(result -> System.out.println(result));
+                      client.close();
+                      cluster.close();
+                    }
+                  });
+      }});
+    CompletableFuture<String> result = new CompletableFuture<String>();
+    executor.schedule(() -> result.complete("ahoj"), 120, TimeUnit.SECONDS);
+    System.out.println(result.get());
+    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+    Date date = new Date();
+    System.out.println(dateFormat.format(date) + " done"); //2016/11/16 12:08:43
+  }
+
+  @Test
+  public void idTypeTest() throws FileNotFoundException, ExecutionException, InterruptedException {
+    Cluster cluster = Cluster.build(new File("C:\\Users\\marek.cervak\\diplomka\\apache-tinkerpop-gremlin-console-3.2.4\\conf\\remote.yaml")).create();
+    Client client = cluster.connect();
+    Result result = client.submit("graph.features().vertex().supportsNumericIds()").all().get().get(0);
+    result.getBoolean();
+    client.close();
+    cluster.close();
+  }
+
 
   public <T> CompletableFuture<T> timeoutAfter(long timeout, TimeUnit unit) {
     CompletableFuture<T> result = new CompletableFuture<T>();

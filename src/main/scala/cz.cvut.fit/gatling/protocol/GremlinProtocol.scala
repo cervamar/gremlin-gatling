@@ -24,10 +24,13 @@ object GremlinProtocol {
     def newComponents(system: ActorSystem, coreComponents: CoreComponents): GremlinProtocol => GremlinComponents = {
       gremlinProtocol: GremlinProtocol => GremlinComponents(gremlinProtocol)
     }
+
   }
 }
 
 case class GremlinProtocol (client : Client) extends Protocol {
   //val client : Nothing = cluster.connect
   type Components = GremlinComponents
+  val utility = new Utility;
+  val supportNumericIds : Boolean = client.submit("graph.features().vertex().supportsNumericIds()").all.get.get(0).getBoolean
 }
