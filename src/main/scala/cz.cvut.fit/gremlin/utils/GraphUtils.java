@@ -1,10 +1,10 @@
 package cz.cvut.fit.gremlin.utils;
 
+import java.io.IOException;
+
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
-
-import java.io.IOException;
 
 /**
  * Created on 5/2/2017.

@@ -35,7 +35,7 @@ object GremlinQuery {
   val id_prefix = "id";
 }
 
-case class GremlinQueryHolder(str: Expression[String], stringVariables: Map[String, Expression[String]], variables: Map[String, AnyRef]) extends GremlinQuery {
+case class GremlinQueryHolder(str: Expression[String], stringVariables: Map[String, Expression[String]] = Map.empty, variables: Map[String, AnyRef] = Map.empty) extends GremlinQuery {
   override def getQuery : Expression[String] = str
 
   override def getVariables: Map[String, AnyRef] = variables
@@ -57,23 +57,23 @@ case class GremlinPlainQuery(str: Expression[String]) extends GremlinQuery {
 class GremlinQueryBuilder() {
 
   def shortestPath(vertexIdFrom: String, vertexIdTo: String) : GremlinQuery = {
-    shortestPath(StaticStringExpression(vertexIdFrom), StaticStringExpression(vertexIdTo))
+    shortestPath(toExpression(vertexIdFrom), toExpression(vertexIdTo))
   }
   def shortestPath(vertexIdFrom: Expression[String], vertexIdTo: Expression[String]) : GremlinQuery = {
     val stringVariables = Map(GremlinQuery.id_prefix + 1 -> vertexIdFrom, GremlinQuery.id_prefix + 2 -> vertexIdTo)
-    GremlinQueryHolder(StaticStringExpression("g.V(%s).repeat(out().simplePath()).until(hasId(%s)).path().limit(1)"), stringVariables, Map.empty)
+    GremlinQueryHolder(toExpression("g.V(%s).repeat(out().simplePath()).until(hasId(%s)).path().limit(1)"), stringVariables, Map.empty)
   }
   def getVertex(vertexId: String) : GremlinQuery = {
-    getVertex(StaticStringExpression(vertexId))
+    getVertex(toExpression(vertexId))
   }
 
   def getVertex(vertexId: Expression[String]) : GremlinQuery = {
     val variables = Map(GremlinQuery.id_prefix -> vertexId)
-    GremlinQueryHolder(StaticStringExpression("g.V(%s)"), variables, Map.empty)
+    GremlinQueryHolder(toExpression("g.V(%s)"), variables, Map.empty)
   }
 
   def query(query: String) : GremlinQuery = {
-    GremlinQueryHolder(StaticStringExpression(query), Map.empty, Map.empty)
+    GremlinQueryHolder(toExpression(query), Map.empty, Map.empty)
   }
 
   def query(query: Expression[String]) : GremlinQuery = {
@@ -81,15 +81,27 @@ class GremlinQueryBuilder() {
   }
 
   def neighbors(vertexIdFrom: String, distance:Int): GremlinQuery = {
-    neighbors(StaticStringExpression(vertexIdFrom), distance)
+    neighbors(toExpression(vertexIdFrom), distance)
   }
 
   def neighbors(vertexIdFrom: Expression[String], distance:Int) : GremlinQuery = {
     val stringVariables = Map(GremlinQuery.id_prefix -> vertexIdFrom)
     val variables = Map("distance" -> Int.box(distance))
-    GremlinQueryHolder(StaticStringExpression("g.V(%s).repeat(out()).times(distance).simplePath()"), stringVariables, variables)
+    GremlinQueryHolder(toExpression("g.V(%s).repeat(out()).times(distance).simplePath()"), stringVariables, variables)
   }
 
+  def mutualNeighbors(vertexId: String, vertexId2: String): GremlinQuery = {
+    mutualNeighbors(toExpression(vertexId), toExpression(vertexId2))
+  }
+
+  def mutualNeighbors(vertexId: Expression[String], vertexId2: Expression[String]) : GremlinQuery = {
+    val stringVariables = Map(GremlinQuery.id_prefix + 1 -> vertexId, GremlinQuery.id_prefix + 2 -> vertexId2)
+    GremlinQueryHolder(toExpression("g.V(%s).out().as('x').in().hasId(%s).select('x')"), stringVariables, Map.empty)
+  }
+
+  def toExpression(string : String): Expression[String] = {
+    StaticStringExpression(string)
+  }
 }
 
 

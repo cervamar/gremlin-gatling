@@ -86,6 +86,18 @@ public class GremlinQueryBuilderTest {
     }
 
     @Test
+    public void getMutualNeighbors() throws ScriptException {
+        GremlinQuery query = gremlinQueryBuilder.mutualNeighbors(vertices.get("marko").toString(), vertices.get("josh").toString());
+        Object result = executorQuery.eval(query, mockedSession);
+        List results = IteratorUtils.asList(result);
+        assert(results.size() == 1);
+        query = gremlinQueryBuilder.mutualNeighbors(vertices.get("marko").toString(), vertices.get("ripple").toString());
+        result = executorQuery.eval(query, mockedSession);
+        results = IteratorUtils.asList(result);
+        assert(results.size() == 0);
+    }
+
+    @Test
     public void getVertex() throws ScriptException {
         GremlinQuery query = gremlinQueryBuilder.getVertex(vertices.get("marko").toString());
         Object result = executorQuery.eval(query, mockedSession);
