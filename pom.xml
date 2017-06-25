@@ -77,7 +77,6 @@
       <artifactId>neo4j-tinkerpop-api-impl</artifactId>
        <version>0.3-2.3.3</version> <!--<version>0.4-3.0.3</version> -->
     </dependency>
-
     <dependency>
       <groupId>com.michaelpollmeier</groupId>
       <artifactId>orientdb-gremlin</artifactId>

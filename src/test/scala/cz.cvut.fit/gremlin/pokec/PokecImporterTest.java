@@ -1,13 +1,5 @@
 package cz.cvut.fit.gremlin.pokec;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import cz.cvut.fit.gremlin.core.ExecutorQuery;
 import cz.cvut.fit.gremlin.core.GremlinQuery;
 import cz.cvut.fit.gremlin.core.GremlinQueryBuilder;
@@ -18,6 +10,15 @@ import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.IntConsumer;
+import java.util.stream.IntStream;
 
 /**
  * Created on 5/4/2017.
@@ -31,9 +32,12 @@ public class PokecImporterTest {
     public static final String SRC_TEST_RESOURCES_POKEC = "src/test/resources/pokec/";
     final static String kryoFilePath = SRC_TEST_RESOURCES_POKEC + "idMap.ser";
 
+    private static  TestSourceProvider.GraphSource graphSource = new TestSourceProvider.GraphInMemorySource("src/test/resources/neo4j-standalone.properties");
 
-    public static String FULL_USERS_PATH = "C:\\Users\\marek.cervak\\diplomka\\soc-pokec-profiles.txt\\soc-pokec-profiles.txt";
-    public static String FULL_RELATIONSHIPS_PATH = "C:\\Users\\marek.cervak\\diplomka\\soc-pokec-relationships.txt\\soc-pokec-relationships.txt";
+
+
+    public static String FULL_USERS_PATH = "C:\\Users\\cerva\\diplomka\\soc-pokec-profiles.txt\\soc-pokec-profiles.txt";
+    public static String FULL_RELATIONSHIPS_PATH = "C:\\Users\\cerva\\diplomka\\soc-pokec-relationships.txt\\soc-pokec-relationships.txt";
 
     @Test
     public void processRecords() throws Exception {
@@ -121,8 +125,7 @@ public class PokecImporterTest {
     @Test
     public void shortestPath() throws Exception {
         Map<String, Object> idMap = PokecImporter.readIdMapFromFile(kryoFilePath);
-        TestSourceProvider.GraphSource graphSource = new TestSourceProvider.GraphInMemorySource("src/test/resources/neo4j-standalone.properties");
-        //TestSourceProvider.GraphSource graphSource = new TestSourceProvider.GraphInMemorySource("src/test/resources/orientDb-local.properties");
+//TestSourceProvider.GraphSource graphSource = new TestSourceProvider.GraphInMemorySource("src/test/resources/orientDb-local.properties");
 
         graphSource.initGraph();
 
@@ -139,13 +142,40 @@ public class PokecImporterTest {
         //Object result = executable.getResult();
         GremlinQueryBuilder gremlinQueryBuilder = new GremlinQueryBuilder();
         GremlinQuery gremlinQuery = gremlinQueryBuilder.shortestPath(id1.toString(),id2.toString());
-        ExecutorQuery executorQuery = new ExecutorQuery(graphSource.getGraph());
+
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        List<Callable<List>> callables = new ArrayList<>();
+
+        IntStream.rangeClosed(1, 4)
+                .forEach(new IntConsumer() {
+                    @Override
+                    public void accept(int value) {
+                        callables.add(() -> {
+                            ExecutorQuery executorQuery = new ExecutorQuery(graphSource.getGraph());
+                            long startTime = System.currentTimeMillis();
+                            Object result = executorQuery.eval(gremlinQuery, new MockedSession().createSession());
+                            long endTime = System.currentTimeMillis();
+                            System.out.println("execution time:" + (endTime-startTime));
+                            return IteratorUtils.asList(result);
+                        });
+                    }
+                });
+
         long startTime = System.currentTimeMillis();
-        Object result = executorQuery.eval(gremlinQuery, new MockedSession().createSession());
+        executor.invokeAll(callables)
+                .stream()
+                .map(future -> {
+                    try {
+                        return future.get();
+                    }
+                    catch (Exception e) {
+                        throw new IllegalStateException(e);
+                    }
+                })
+                .forEach(System.out::println);
         long endTime = System.currentTimeMillis();
         System.out.println("execution time:" + (endTime-startTime));
-        List paths = IteratorUtils.asList(result);
-        System.out.println(paths);
+        //System.out.println(paths);
         graphSource.clean();
     }
 
@@ -156,9 +186,10 @@ public class PokecImporterTest {
         TestSourceProvider.GraphSource graphSource = new TestSourceProvider.GraphInMemorySource("src/test/resources/neo4j-standalone.properties");
         //TestSourceProvider.GraphSource graphSource = new TestSourceProvider.GraphInMemorySource("src/test/resources/orientDb-inmemory.properties");
         graphSource.initGraph();
-
+        final boolean isTransactional = graphSource.getGraph().features().graph().supportsTransactions();
         Map<String, Object> idMap = fullLoadAndStoreVertices(graphSource.getGraph(), FULL_USERS_PATH);
-        if (graphSource.getGraph().features().graph().supportsTransactions()) {
+
+        if (isTransactional) {
             graphSource.getGraph().tx().commit();
         }
         PokecImporter.saveIdMaptoFile(idMap, kryoFilePath);
@@ -166,7 +197,7 @@ public class PokecImporterTest {
 
         //Map<String, Object> idMap = PokecImporter.readIdMapFromFile(kryoFilePath);
         fullLoadAndStoreEdges(graphSource.getGraph(), idMap, FULL_RELATIONSHIPS_PATH);
-        if (graphSource.getGraph().features().graph().supportsTransactions()) {
+        if (isTransactional) {
             graphSource.getGraph().tx().commit();
         }
 
@@ -174,5 +205,7 @@ public class PokecImporterTest {
         graphSource.clean();
         //PokecImporter.saveIdMaptoFile(idMap, kryoFilePath);
     }
+
+
 
 }

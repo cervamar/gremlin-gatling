@@ -4,7 +4,6 @@ import akka.actor.ActorSystem
 import io.gatling.core.CoreComponents
 import io.gatling.core.config.GatlingConfiguration
 import io.gatling.core.protocol.{Protocol, ProtocolKey}
-import org.apache.tinkerpop.gremlin.driver.Client
 
 /**
   * Created by cerva on 13/04/2017.
@@ -28,9 +27,8 @@ object GremlinProtocol {
   }
 }
 
-case class GremlinProtocol (client : Client) extends Protocol {
-  //val client : Nothing = cluster.connect
+case class GremlinProtocol (serverClient : GremlinServerClient) extends Protocol {
   type Components = GremlinComponents
-  val utility = new Utility;
-  val supportNumericIds : Boolean = client.submit("graph.features().vertex().supportsNumericIds()").all.get.get(0).getBoolean
+  val utility = new Utility
+  val supportNumericIds : Boolean = serverClient.getClient.submit("graph.features().vertex().supportsNumericIds()").all.get.get(0).getBoolean
 }

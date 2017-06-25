@@ -1,14 +1,5 @@
 package cz.cvut.fit.gremlin.core;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.script.ScriptException;
-
 import cz.cvut.fit.gremlin.utils.MockedSession;
 import cz.cvut.fit.gremlin.utils.TestSourceProvider;
 import io.gatling.core.session.Session;
@@ -20,6 +11,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+
+import javax.script.ScriptException;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Created on 5/3/2017.

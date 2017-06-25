@@ -24,7 +24,7 @@ import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine
 
 object GremlinAction extends NameGen {
 
-  def apply(requestName: Expression[String], gremlinQuery: GremlinQuery, protocol: GremlinProtocol, system: ActorSystem, statsEngine: StatsEngine, next: Action) = {
+  def apply(requestName: Expression[String], gremlinQuery: GremlinQuery, protocol: GremlinProtocol, system: ActorSystem, statsEngine: StatsEngine, next: Action): ExitableActorDelegatingAction = {
     val actor = system.actorOf(GremlinActionActor.props(requestName, gremlinQuery, protocol, statsEngine, next))
     new ExitableActorDelegatingAction(genName("Gremlin"), statsEngine, next, actor)
   }
@@ -43,8 +43,8 @@ class GremlinActionActor(
      val next: Action)  extends ActionActor {
 
   val engine = new GremlinGroovyScriptEngine
-  var queryResult : util.List[Result] = null;
-  var startTime = 0L;
+  var queryResult : util.List[Result] = _
+  var startTime = 0L
   val executor = Executors.newScheduledThreadPool(2)
 
   var resolvedQuery = "sdf"
@@ -54,13 +54,12 @@ class GremlinActionActor(
     getVariables.foreach((entry) => map.put(entry._1, entry._2))
     map
   }
-  override def execute(session: Session) = {
-    //TODO:
+  override def execute(session: Session): Unit = {
     //resolvedQuery = gremlinQuery.getQuery.apply(session).get
     resolvedQuery = gremlinQuery.getPlainQuery(session, protocol.supportNumericIds)
     //println("User " + session.userId + " calling " + resolvedQuery)
     startTime = now()
-    val response = protocol.client.submitAsync(resolvedQuery, createJavaMap(gremlinQuery.getVariables))
+    val response = protocol.serverClient.getClient.submitAsync(resolvedQuery, createJavaMap(gremlinQuery.getVariables))
     response.thenAccept(new Consumer[ResultSet] {
       override def accept(t: ResultSet): Unit = {
         t.all().acceptEither(protocol.utility.timeoutAfter(20, TimeUnit.SECONDS), new Consumer[util.List[Result]] {
@@ -85,7 +84,7 @@ class GremlinActionActor(
 
   def call(query : String): Int = {
     try {
-      queryResult = protocol.client.submit(query).all().get();
+      queryResult = protocol.serverClient.getClient.submit(query).all().get()
       0
     }
       catch {
@@ -105,7 +104,7 @@ class GremlinActionActor(
 
   def printResult(result: util.List[Result], time: Long, query: String, status: Status) {
     result.forEach( new Consumer[Result] {
-      override def accept(t: Result): Unit = println(t);
+      override def accept(t: Result): Unit = println(t)
     })
     println(query + "processed in time " + time + " with result " + status)
   }

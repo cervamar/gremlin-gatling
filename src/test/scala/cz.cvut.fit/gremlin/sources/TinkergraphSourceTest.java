@@ -1,5 +1,23 @@
 package cz.cvut.fit.gremlin.sources;
 
+import cz.cvut.fit.gremlin.utils.TestSourceProvider;
+import org.apache.tinkerpop.gremlin.driver.Client;
+import org.apache.tinkerpop.gremlin.driver.Cluster;
+import org.apache.tinkerpop.gremlin.driver.Result;
+import org.apache.tinkerpop.gremlin.driver.ResultSet;
+import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.io.IoCore;
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerFactory;
+import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import javax.script.Bindings;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.DateFormat;
@@ -8,30 +26,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
-
-import javax.script.Bindings;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-
-import cz.cvut.fit.gremlin.utils.TestSourceProvider;
-import org.apache.tinkerpop.gremlin.driver.Client;
-import org.apache.tinkerpop.gremlin.driver.Cluster;
-import org.apache.tinkerpop.gremlin.driver.Result;
-import org.apache.tinkerpop.gremlin.driver.ResultSet;
-import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.io.IoCore;
-import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerFactory;
-import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
-import org.junit.Ignore;
-import org.junit.Test;
 
 import static org.apache.tinkerpop.gremlin.structure.Direction.OUT;
 
@@ -48,6 +44,8 @@ public class TinkergraphSourceTest {
   @Test
   public void shortestPath() throws ScriptException {
     Graph graph = TinkerFactory.createModern();
+    GraphTraversal<Vertex, Vertex> result = graph.traversal().V(1);
+    System.out.println(IteratorUtils.asList(result));
     String query = "g.V(1).repeat(out().simplePath()).until(hasId(5)).path().limit(1).fill(results)";
     ScriptEngine engine = new GremlinGroovyScriptEngine();
     List results = new ArrayList();
@@ -200,11 +198,13 @@ public class TinkergraphSourceTest {
   }
 
 
+
   public <T> CompletableFuture<T> timeoutAfter(long timeout, TimeUnit unit) {
     CompletableFuture<T> result = new CompletableFuture<T>();
     executor.schedule(() -> result.complete(null), timeout, unit);
     return result;
   }
+
 
 
 }

@@ -32,7 +32,7 @@ trait GremlinQuery {
 }
 
 object GremlinQuery {
-  val id_prefix = "id";
+  val id_prefix = "id"
 }
 
 case class GremlinQueryHolder(str: Expression[String], stringVariables: Map[String, Expression[String]] = Map.empty, variables: Map[String, AnyRef] = Map.empty) extends GremlinQuery {

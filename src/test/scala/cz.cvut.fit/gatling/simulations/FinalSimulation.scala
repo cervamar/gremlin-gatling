@@ -1,7 +1,7 @@
 package cz.cvut.fit.gatling.simulations
 
 import cz.cvut.fit.gatling.GremlinPredef.gremlin
-import cz.cvut.fit.gatling.protocol.{GremlinClient, GremlinProtocol}
+import cz.cvut.fit.gatling.protocol.{GremlinProtocol, GremlinServerClient}
 import io.gatling.core.Predef._
 
 /**
@@ -9,20 +9,18 @@ import io.gatling.core.Predef._
   */
 class FinalSimulation  extends Simulation {
 
-  val gremlinProtocol = new GremlinProtocol(new GremlinClient().getClient)
+  val gremlinProtocol = new GremlinProtocol(GremlinServerClient.createGremlinServerClient())
 
   val r = scala.util.Random
-  val feeder = Iterator.continually(Map("id" -> ("\"" + r.nextInt(10) + "\"")))
+  val idFeeder = Iterator.continually(Map("id" -> ("\"" + (r.nextInt(100000) + "\"")), "id2" -> ("\"" + (r.nextInt(100000) + "\""))))
 
-  def scn = scenario("Scenario1").repeat(5){
-    //exec(gremlin("query").query("g.V(\"1\").repeat(out().simplePath()).until(hasId(\"5\")).path().limit(1)"))
-    //exec(gremlin("query").query("g.V().has(\"name\", \"marko\").repeat(out().simplePath()).until(has(\"name\", \"ripple\")).path().limit(1)"))
-    feed(feeder).exec(gremlin("query").query("g.V(${id})"))
-    .exec(gremlin("query").query("g.V(${id})"))
-  }
+  def scn = scenario("User")
+    .feed(idFeeder).exec(gremlin("getProfile").vertex("${id}"))
+    .exec(gremlin("getUserFriends").neighbours("${id}", 1))
+    .exec(gremlin("getMutualFriends").mutualNeigbours("${id}", "${id2}"))
 
   setUp(
-    scn.inject(atOnceUsers(5))
+    scn.inject(rampUsers(2000) over 20)
   ).protocols(gremlinProtocol)
 
 }

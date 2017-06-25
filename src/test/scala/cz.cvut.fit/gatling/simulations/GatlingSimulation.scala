@@ -1,7 +1,7 @@
 package cz.cvut.fit.gatling.simulations
 
 import cz.cvut.fit.gatling.GremlinPredef.gremlin
-import cz.cvut.fit.gatling.protocol.{GremlinClient, GremlinProtocol}
+import cz.cvut.fit.gatling.protocol.{GremlinProtocol, GremlinServerClient}
 import io.gatling.core.Predef._
 
 /**
@@ -9,7 +9,7 @@ import io.gatling.core.Predef._
   */
 class GatlingSimulation  extends Simulation {
 
-  val gremlinProtocol = new GremlinProtocol(new GremlinClient().getClient)
+  val gremlinProtocol = new GremlinProtocol(GremlinServerClient.createGremlinServerClient())
 
   val r = scala.util.Random
   val idFeeder = Iterator.continually(Map("id" -> ("\"" + (r.nextInt(100000) + "\"")), "id2" -> ("\"" + (r.nextInt(100000) + "\""))))
