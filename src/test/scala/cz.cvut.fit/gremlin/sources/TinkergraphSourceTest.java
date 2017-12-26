@@ -1,33 +1,40 @@
 package cz.cvut.fit.gremlin.sources;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+import javax.script.Bindings;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+
 import cz.cvut.fit.gremlin.utils.TestSourceProvider;
 import org.apache.tinkerpop.gremlin.driver.Client;
 import org.apache.tinkerpop.gremlin.driver.Cluster;
 import org.apache.tinkerpop.gremlin.driver.Result;
 import org.apache.tinkerpop.gremlin.driver.ResultSet;
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.jsr223.JavaTranslator;
+import org.apache.tinkerpop.gremlin.process.traversal.Bytecode;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
+import org.apache.tinkerpop.gremlin.structure.util.empty.EmptyGraph;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerFactory;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import javax.script.Bindings;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.*;
-import java.util.function.Consumer;
 
 import static org.apache.tinkerpop.gremlin.structure.Direction.OUT;
 
@@ -43,17 +50,21 @@ public class TinkergraphSourceTest {
 
   @Test
   public void shortestPath() throws ScriptException {
+    GraphTraversalSource g = EmptyGraph.instance().traversal();
+
+    Bytecode bytecode = g.V().has("name", "marko").asAdmin().getBytecode();
+
     Graph graph = TinkerFactory.createModern();
-    GraphTraversal<Vertex, Vertex> result = graph.traversal().V(1);
-    System.out.println(IteratorUtils.asList(result));
+    //GraphTraversal<Vertex, Vertex> result = graph.traversal().V(1);
+    //System.out.println(IteratorUtils.asList(result));
     String query = "g.V(1).repeat(out().simplePath()).until(hasId(5)).path().limit(1).fill(results)";
-    ScriptEngine engine = new GremlinGroovyScriptEngine();
-    List results = new ArrayList();
+    GremlinGroovyScriptEngine engine = new GremlinGroovyScriptEngine();
     Bindings bindings = engine.createBindings();
     bindings.put("g", graph.traversal());
-    bindings.put("results", results);
-    engine.eval(query, bindings);
-    System.out.println(results);
+    //Object result = engine.eval(GroovyTranslator.of("g").translate(bytecode), bindings);
+    System.out.println(IteratorUtils.asList( JavaTranslator.of(graph.traversal()).translate(bytecode)));
+
+//    System.out.println(result);
   }
 
   @Test
@@ -70,6 +81,7 @@ public class TinkergraphSourceTest {
   @Test
   public void createEdge() throws ScriptException {
     Graph graph = TinkerFactory.createModern();
+    GraphTraversalSource g = graph.traversal();
     Vertex to = graph.vertices(6).next();
     Vertex from = graph.vertices(1).next();
     assert(IteratorUtils.count(from.edges(OUT,"wish")) == 0);
@@ -191,8 +203,20 @@ public class TinkergraphSourceTest {
   public void idTypeTest() throws FileNotFoundException, ExecutionException, InterruptedException {
     Cluster cluster = Cluster.build(new File("C:\\Users\\marek.cervak\\diplomka\\apache-tinkerpop-gremlin-console-3.2.4\\conf\\remote.yaml")).create();
     Client client = cluster.connect();
-    Result result = client.submit("graph.features().vertex().supportsNumericIds()").all().get().get(0);
+    Result result = client.submit("g.V(1)").all().get().get(0);
+    CompletableFuture<ResultSet> asyncResult = client.submitAsync("g.V(1)");
     result.getBoolean();
+    client.close();
+    cluster.close();
+  }
+
+  @Test
+  public void clientTest() throws FileNotFoundException, ExecutionException, InterruptedException {
+    Cluster cluster = Cluster.open();
+    System.out.println("Max usage: " + cluster.maxSimultaneousUsagePerConnection());
+    Client client = cluster.connect();
+    Result result = client.submit("graph.features().vertex().supportsNumericIds()").all().get().get(0);
+    System.out.println(result.getBoolean());
     client.close();
     cluster.close();
   }

@@ -73,6 +73,12 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.apache.tinkerpop</groupId>
+      <artifactId>gremlin-server</artifactId>
+      <version>${gremlin.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.neo4j</groupId>
       <artifactId>neo4j-tinkerpop-api-impl</artifactId>
        <version>0.3-2.3.3</version> <!--<version>0.4-3.0.3</version> -->
@@ -165,7 +171,7 @@
           <disableCompiler>true</disableCompiler>
           <includes>
           <!--  <param>cz.cvut.fit.gatling.simulations.HttpSimulation1</param>-->
-          <param>cz.cvut.fit.gatling.simulations.GatlingSimulation</param>
+          <param>cz.cvut.fit.gatling.simulations.TestConnectionSimulation</param>
         </includes>
         <!-- <simulationClass>cz.cvut.fit.gatling.simulations.HttpSimulation1</simulationClass> -->
         </configuration>

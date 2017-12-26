@@ -10,9 +10,7 @@ import io.gatling.core.protocol.{Protocol, ProtocolKey}
   */
 
 object GremlinProtocol {
-
   val GremlinProtocolKey = new ProtocolKey {
-
     type Protocol = GremlinProtocol
     type Components = GremlinComponents
 
@@ -23,12 +21,8 @@ object GremlinProtocol {
     def newComponents(system: ActorSystem, coreComponents: CoreComponents): GremlinProtocol => GremlinComponents = {
       gremlinProtocol: GremlinProtocol => GremlinComponents(gremlinProtocol)
     }
-
   }
 }
 
 case class GremlinProtocol (serverClient : GremlinServerClient) extends Protocol {
-  type Components = GremlinComponents
-  val utility = new Utility
-  val supportNumericIds : Boolean = serverClient.getClient.submit("graph.features().vertex().supportsNumericIds()").all.get.get(0).getBoolean
 }

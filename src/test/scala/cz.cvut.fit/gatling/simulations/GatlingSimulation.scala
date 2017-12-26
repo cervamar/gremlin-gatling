@@ -9,7 +9,7 @@ import io.gatling.core.Predef._
   */
 class GatlingSimulation  extends Simulation {
 
-  val gremlinProtocol = new GremlinProtocol(GremlinServerClient.createGremlinServerClient())
+  val gremlinProtocol = new GremlinProtocol(GremlinServerClient.createGremlinServerClient("src/main/resources/remote.yaml"))
 
   val r = scala.util.Random
   val idFeeder = Iterator.continually(Map("id" -> ("\"" + (r.nextInt(100000) + "\"")), "id2" -> ("\"" + (r.nextInt(100000) + "\""))))
@@ -20,7 +20,7 @@ class GatlingSimulation  extends Simulation {
       .exec(gremlin("getMutualFriends").mutualNeigbours("${id}", "${id2}"))
 
   setUp(
-    scn.inject(rampUsers(2000) over 20)
+    scn.inject(rampUsers(3000) over 20)
   ).protocols(gremlinProtocol)
 
 }
