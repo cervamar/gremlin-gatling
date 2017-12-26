@@ -170,10 +170,10 @@
           <runMultipleSimulations>true</runMultipleSimulations>
           <disableCompiler>true</disableCompiler>
           <includes>
-          <!--  <param>cz.cvut.fit.gatling.simulations.HttpSimulation1</param>-->
-          <param>cz.cvut.fit.gatling.simulations.TestConnectionSimulation</param>
+          <!--  <param>cz.cvut.fit.cervamar.gatling.simulations.HttpSimulation1</param>-->
+          <param>cz.cvut.fit.cervamar.gatling.simulations.TestConnectionSimulation</param>
         </includes>
-        <!-- <simulationClass>cz.cvut.fit.gatling.simulations.HttpSimulation1</simulationClass> -->
+        <!-- <simulationClass>cz.cvut.fit.cervamar.gatling.simulations.HttpSimulation1</simulationClass> -->
         </configuration>
         <executions>
           <execution>
