@@ -1,36 +1,21 @@
 package cz.cvut.fit.cervamar.gremlin.pokec;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import cz.cvut.fit.cervamar.gatling.protocol.GremlinServerClient;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.shaded.kryo.Kryo;
-import org.apache.tinkerpop.shaded.kryo.io.Input;
-import org.apache.tinkerpop.shaded.kryo.io.Output;
 
 /**
  * Created on 5/4/2017.
@@ -46,74 +31,31 @@ public class PokecImporter {
             "politics", "relationships", "art_culture", "hobbies_interests", "science_technologies", "computers_internet", "education", "sport", "movies", "travelling", "health",
             "companies_brands", "more");
 
-    static List<Integer> toStore = Arrays.asList(0, 3, 4, 7);
-    static Map<Integer, String> INDEXED_COLUMNS = toStore.stream().collect(Collectors.toMap(Function.identity(), c -> COLUMN_NAMES.get(c)));
+    static final List<Integer> toStore = Arrays.asList(0, 3, 4, 7);
+    static final Map<Integer, String> INDEXED_COLUMNS = toStore.stream().collect(Collectors.toMap(Function.identity(), COLUMN_NAMES::get));
+    private static final int LIMIT = 100000;
+    static PokecQueryBuilder pokecQueryBuilder = new PokecQueryBuilder();
 
     private static final Log LOG = LogFactory.getLog(PokecImporter.class);
-    private static Vertex lastVertex;
 
+    private GremlinServerClient serverClient;
 
-    public static List<Map<String, String>> readRecords(File inputFile) throws IOException {
-        List<Map<String, String>> ret = new ArrayList<>();
-        LineIterator it = FileUtils.lineIterator(inputFile, "UTF-8");
-        try {
-            while (it.hasNext()) {
-                String line = it.nextLine();
-                ret.add(createVertexRecord(line));
+    public PokecImporter(GremlinServerClient serverClient) {
+        this.serverClient = serverClient;
+    }
+
+    public void loadVerticesToServer(String inputFile) throws InterruptedException, IOException {
+        loadVerticesToServer(new File(inputFile));
+    }
+
+    public void loadVerticesToServer(File inputFile) throws IOException, InterruptedException {
+        loadToServer(inputFile, line -> {
+            Map<String, String> vertex = createVertexRecord(line);
+            if(isInRange(vertex.getOrDefault("id", "1"))) {
+                return Optional.of(pokecQueryBuilder.createInsertQuery(vertex));
             }
-        } finally {
-            LineIterator.closeQuietly(it);
-        }
-        return ret;
-    }
-
-    public static Map<String, Object> readAndStoreVerticesRecords(File inputFile, Graph graph) throws IOException {
-        return readAndStoreRecords(inputFile, graph, true, null);
-    }
-
-    public static Map<String, Object> readAndStoreEdgeRecords(File inputFile, Graph graph, Map<String, Object> idMap) throws IOException {
-        return readAndStoreRecords(inputFile, graph, false, idMap);
-    }
-
-
-    private static Map<String, Object> readAndStoreRecords(File inputFile, Graph graph, boolean vertex, Map<String, Object> idMap) throws IOException {
-        Map<String, Object> ret = new HashMap<>();
-        LineIterator it = FileUtils.lineIterator(inputFile, "UTF-8");
-        int cnt = 0;
-        try {
-            while (it.hasNext()) {
-                if((cnt++)%1000 == 0) {
-                    LOG.info("Processed " + cnt + " records");
-                }
-                String line = it.nextLine();
-                if(vertex) {
-                    Optional<Record> record = loadVertexToGraph(graph, createVertexRecord(line));
-                    if(record.isPresent()) {
-                        ret.put(record.get().getId(), record.get().getDatabaseId());
-                    }
-                }
-                else {
-                    loadEdgeToGraph(graph, line.split("\\t"), idMap);
-                }
-            }
-        } finally {
-            LineIterator.closeQuietly(it);
-        }
-        return ret;
-    }
-
-    private static void loadEdgeToGraph(Graph graph, String[] split, Map<String, Object> idMap) {
-        assert (split.length == 2);
-        Object fromId = idMap.get(split[0]);
-        Object toId = idMap.get(split[1]);
-        if (fromId == null || toId == null) {
-            //LOG.debug("Creating edge between not-existing vertices " + split[0] + " --> " + split[1]);
-            return;
-        }
-        Iterator<Vertex> it = graph.vertices(fromId, toId);
-        Vertex from = it.next();
-        Vertex to = it.next();
-        from.addEdge("likes", to);
+            else return Optional.empty();
+        });
     }
 
     public static Map<String, String> createVertexRecord(String recordLine) {
@@ -128,37 +70,52 @@ public class PokecImporter {
         return ret;
     }
 
-    public static Optional<Record> loadVertexToGraph(Graph graph, Map<String, String> record) {
-        if(Integer.parseInt(record.get("id")) > 100000) return Optional.empty();
-        Object[] properties = ArrayUtils.addAll(record.entrySet().stream().flatMap(x -> Stream.of(x.getKey(), x.getValue())).toArray(), T.label, "person");
-        Vertex vertex = graph.addVertex(properties);
-        return Optional.of(new Record(record.get("id"), vertex.id()));
+    public static EdgeWrapper createEdgeRecord(String recordLine) {
+        String[] records = recordLine.split("\\t");
+        assert (records.length == 2);
+        return new EdgeWrapper(records[0], records[1]);
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Record {
-        private String id;
-        private Object databaseId;
+
+    public void loadEdgesToServer(String relationFile) throws InterruptedException, IOException {
+           loadEdgesToServer(new File(relationFile));
     }
 
-    public static Map<String, Object> readIdMapFromFile (String kryoFilePath) throws FileNotFoundException {
-        Kryo kryo = new Kryo();
-        try (Input idMap = new Input(new FileInputStream(kryoFilePath))){
-            return (Map<String, Object>) kryo.readObject(idMap,  HashMap.class);
+    public void loadEdgesToServer(File relationFile) throws IOException, InterruptedException {
+        loadToServer(relationFile, (String line) -> {
+            EdgeWrapper edge = createEdgeRecord(line);
+            if(isInRange(edge.from) && isInRange(edge.to)) {
+                return Optional.of(pokecQueryBuilder.createInsertEdgeQuery(edge.from, edge.to, "likes"));
+            }
+            else return Optional.empty();
+        });
+    }
+
+    private boolean isInRange(String value) {
+        return Integer.parseInt(value) <= LIMIT;
+    }
+
+    private void loadToServer(File records, Function<String, Optional<String>> prepareRecord) throws InterruptedException, IOException {
+        LineIterator it = FileUtils.lineIterator(records, "UTF-8");
+        int cnt = 0;
+        try {
+            while (it.hasNext()) {
+                if((cnt++)%1000 == 0) {
+                    LOG.info("Processed " + cnt + " records");
+                }
+                String line = it.nextLine();
+                try {
+                    Optional<String> query = prepareRecord.apply(line);
+                    if(query.isPresent()) {
+                        serverClient.submit(query.get());
+                    }
+                }
+                catch (ExecutionException e) {
+                    LOG.error(e);
+                }
+            }
+        } finally {
+            LineIterator.closeQuietly(it);
         }
     }
-
-    public static void saveIdMaptoFile(Map <String, Object> ids, String pathToFile) throws FileNotFoundException {
-        Kryo kryo = new Kryo();
-        File toStore = new File(pathToFile);
-        FileUtils.deleteQuietly(toStore);
-        try(Output output = new Output(new FileOutputStream(toStore))) {
-            kryo.writeObject(output, ids);
-            output.close();
-        }
-    }
-
 }

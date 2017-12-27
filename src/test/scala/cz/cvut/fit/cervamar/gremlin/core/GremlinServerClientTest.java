@@ -13,6 +13,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Created on 12/24/2017.
  *
@@ -54,15 +57,14 @@ public class GremlinServerClientTest {
 
     @Test
     public void shouldCreateGraph() throws Exception {
-        GremlinServerClient gremlinServerClient = new GremlinServerClient(Cluster.build("localhost").port(PORT).create());
+        GremlinServerClient gremlinServerClient = new GremlinServerClient(createLocalCluster());
         List<Result> results = gremlinServerClient.submit("g.V().count()", Collections.emptyMap());
-        System.out.println(results.size());
+        assertTrue(results.size() > 0);
+        assertEquals(6L, results.get(0).getLong());
     }
 
-    @Test
-    public void getVertexById() throws Exception {
-        GremlinServerClient gremlinServerClient = GremlinServerClient.createGremlinServerClient();
-        List<Result> results = gremlinServerClient.submit("g.V(7)", Collections.emptyMap());
-        System.out.println(results.size());
+    private Cluster createLocalCluster() {
+        return Cluster.build("localhost").port(PORT).create();
     }
+
 }

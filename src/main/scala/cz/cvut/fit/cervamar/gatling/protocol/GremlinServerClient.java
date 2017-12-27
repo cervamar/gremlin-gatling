@@ -55,7 +55,7 @@ public class GremlinServerClient {
         });
     }
 
-    private List<Result> submit(String gremlinQuery) throws ExecutionException, InterruptedException {
+    public List<Result> submit(String gremlinQuery) throws ExecutionException, InterruptedException {
         return submit(gremlinQuery, Collections.emptyMap());
     }
 
