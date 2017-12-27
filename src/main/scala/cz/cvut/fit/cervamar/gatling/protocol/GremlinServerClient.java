@@ -26,7 +26,6 @@ import org.apache.tinkerpop.gremlin.driver.ResultSet;
 public class GremlinServerClient {
 
     public static final int QUERY_TIMEOUT = 20;
-    private Cluster cluster;
     private Client client;
     private final boolean supportNumericIds;
 
@@ -43,7 +42,6 @@ public class GremlinServerClient {
     }
 
     public GremlinServerClient(Cluster cluster) throws ExecutionException, InterruptedException {
-        this.cluster = cluster;
         this.client = cluster.connect();
         supportNumericIds = submit("graph.features().vertex().supportsNumericIds()").get(0).getBoolean();
     }
@@ -64,7 +62,7 @@ public class GremlinServerClient {
     }
 
     private <T> CompletableFuture<T> timeoutAfter(long timeout, TimeUnit unit) {
-        CompletableFuture<T> result = new CompletableFuture<T>();
+        CompletableFuture<T> result = new CompletableFuture<>();
         executor.schedule(() -> result.complete(null), timeout, unit);
         return result;
     }

@@ -44,14 +44,14 @@ public class GremlinServerClientTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         stopServer();
     }
 
     /**
      * Stops a current instance of Gremlin Server.
      */
-    public void stopServer() throws Exception {
+    public void stopServer() {
         server.stop().join();
     }
 

@@ -2,12 +2,10 @@ package cz.cvut.fit.cervamar.gremlin.pokec;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import cz.cvut.fit.cervamar.gatling.protocol.GremlinServerClient;
 import org.apache.tinkerpop.gremlin.driver.Cluster;
-import org.apache.tinkerpop.gremlin.driver.Result;
 import org.apache.tinkerpop.gremlin.server.GremlinServer;
 import org.apache.tinkerpop.gremlin.server.Settings;
 import org.junit.AfterClass;
@@ -17,7 +15,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created on 12/27/2017.
@@ -25,12 +22,11 @@ import static org.junit.Assert.assertTrue;
  * @author Marek.Cervak
  */
 @Ignore
-public class PokecImporterIntegrationTest {
+public class PokecImporterIntegrationTest extends GremlinServerTestBase {
     public static final String SRC_TEST_RESOURCES_POKEC = "src/test/resources/pokec/";
 
     public static final int PORT = 8184;
     private static GremlinServer server;
-    private static GremlinServerClient gremlinServerClient;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -56,14 +52,14 @@ public class PokecImporterIntegrationTest {
     }
 
     @AfterClass
-    public static void cleanUp() throws Exception {
+    public static void cleanUp() {
         stopServer();
     }
 
     /**
      * Stops a current instance of Gremlin Server.
      */
-    public static void stopServer() throws Exception {
+    public static void stopServer() {
         server.stop().join();
     }
 
@@ -72,11 +68,7 @@ public class PokecImporterIntegrationTest {
         PokecImporter pokecImporter = new PokecImporter(gremlinServerClient);
         pokecImporter.loadVerticesToServer(SRC_TEST_RESOURCES_POKEC + "/" + "profiles-100.txt");
         pokecImporter.loadEdgesToServer(SRC_TEST_RESOURCES_POKEC + "/" + "relations-100.txt");
-        List<Result> results = gremlinServerClient.submit("g.V().count()");
-        assertTrue(results.size() > 0);
-        assertEquals(100L, results.get(0).getLong());
-        results = gremlinServerClient.submit("g.E().count()");
-        assertTrue(results.size() > 0);
-        assertEquals(82L, results.get(0).getLong());
+        assertEquals(100L, countVertices());
+        assertEquals(82L, countEdges());
     }
 }

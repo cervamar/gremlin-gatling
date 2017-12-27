@@ -33,7 +33,7 @@ public class PokecImporter {
 
     static final List<Integer> toStore = Arrays.asList(0, 3, 4, 7);
     static final Map<Integer, String> INDEXED_COLUMNS = toStore.stream().collect(Collectors.toMap(Function.identity(), COLUMN_NAMES::get));
-    private static final int LIMIT = 100000;
+    private final int LIMIT;
     static PokecQueryBuilder pokecQueryBuilder = new PokecQueryBuilder();
 
     private static final Log LOG = LogFactory.getLog(PokecImporter.class);
@@ -41,8 +41,14 @@ public class PokecImporter {
     private GremlinServerClient serverClient;
 
     public PokecImporter(GremlinServerClient serverClient) {
-        this.serverClient = serverClient;
+        this(serverClient, 100000);
     }
+
+    public PokecImporter(GremlinServerClient serverClient, int limit) {
+        this.serverClient = serverClient;
+        this.LIMIT = limit;
+    }
+
 
     public void loadVerticesToServer(String inputFile) throws InterruptedException, IOException {
         loadVerticesToServer(new File(inputFile));

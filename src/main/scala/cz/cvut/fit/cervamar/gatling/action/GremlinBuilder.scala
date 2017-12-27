@@ -13,7 +13,7 @@ import io.gatling.core.structure.ScenarioContext
 
 
 abstract class GremlinBuilder(requestName: Expression[String]) extends GremlinCheckResultActionBuilder {
-  val gremlinQueryBuilder = new GremlinQueryBuilder()
+  protected val gremlinQueryBuilder = new GremlinQueryBuilder()
 
   def getGremlinComponent(protocolComponentsRegistry: ProtocolComponentsRegistry) =
     protocolComponentsRegistry.components(GremlinProtocol.GremlinProtocolKey)
