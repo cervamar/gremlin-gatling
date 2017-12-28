@@ -19,7 +19,7 @@ class TestConnectionSimulation  extends Simulation {
       .query("g.V().count()")
       .check(simpleCheck(result => result.isEmpty)))
   setUp(
-    scn.inject(atOnceUsers(1))
+    scn.inject(rampUsers(2000) over 20)
   ).protocols(gremlinProtocol)
 
 }

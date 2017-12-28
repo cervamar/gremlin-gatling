@@ -3,13 +3,12 @@ package cz.cvut.fit.cervamar.gatling.action
 import java.util
 import java.util.function.Consumer
 
-import akka.actor.{ActorSystem, Props}
 import cz.cvut.fit.cervamar.gatling.ResultCheck
 import cz.cvut.fit.cervamar.gatling.protocol.GremlinProtocol
 import cz.cvut.fit.cervamar.gremlin.core.GremlinQuery
 import io.gatling.commons.stats.{KO, OK, Status}
 import io.gatling.commons.util.ClockSingleton
-import io.gatling.core.action.{Action, ActionActor, ExitableActorDelegatingAction}
+import io.gatling.core.action.{Action, ChainableAction}
 import io.gatling.core.check.Check
 import io.gatling.core.session.{Expression, Session}
 import io.gatling.core.stats.StatsEngine
@@ -24,26 +23,29 @@ import scala.util.Try
   * Created by cerva on 13/04/2017.
   */
 
-object GremlinAction extends NameGen {
+trait GremlinAction extends ChainableAction with NameGen {
 
-  def apply(requestName: Expression[String], gremlinQuery: GremlinQuery,  checks: List[ResultCheck], protocol: GremlinProtocol, system: ActorSystem, statsEngine: StatsEngine, next: Action): ExitableActorDelegatingAction = {
-    val actor = system.actorOf(GremlinActionActor.props(requestName, gremlinQuery, checks, protocol, statsEngine, next))
-    new ExitableActorDelegatingAction(genName("Gremlin"), statsEngine, next, actor)
+  def log(start: Long, end: Long, tried: Try[_], requestName: Expression[String], session: Session, statsEngine: StatsEngine): Unit = {
+    val timing = ResponseTimings(start, end)
+    val status = tried match {
+      case scala.util.Success(_) => OK
+      case scala.util.Failure(_) => KO
+    }
+    requestName.apply(session).foreach { resolvedRequestName =>
+      statsEngine.logResponse(session, resolvedRequestName, timing, status, None, None)
+    }
   }
+
+  override def name: String = genName("gremlinQuery")
 }
 
-object GremlinActionActor {
-  def props(requestName: Expression[String], gremlinQuery: GremlinQuery, checks: List[ResultCheck], protocol: GremlinProtocol, statsEngine: StatsEngine, next: Action): Props =
-    Props(new GremlinActionActor(requestName, gremlinQuery, checks, protocol, statsEngine, next))
-}
-
-class GremlinActionActor(
+case class GremlinExecuteAction (
      requestName: Expression[String],
      gremlinQuery: GremlinQuery,
      checks: List[ResultCheck],
      protocol: GremlinProtocol,
-     val statsEngine: StatsEngine,
-     val next: Action)  extends ActionActor {
+     statsEngine: StatsEngine,
+     next: Action) extends GremlinAction {
 
   def createJavaMap(getVariables: Map[String, Object]): util.Map[String, Object] = {
     val map = new util.HashMap[String, Object]()
@@ -56,7 +58,7 @@ class GremlinActionActor(
     protocol.serverClient.submitAsync(resolvedQuery, createJavaMap(gremlinQuery.getVariables), new Consumer[util.List[Result]] {
       override def accept(result: util.List[Result]): Unit = {
         if (result == null) {
-          log(startTime, now(), scala.util.Success(""), requestName, session)
+          log(startTime, now(), scala.util.Success(""), requestName, session, statsEngine)
           next ! session
         }
         else {
@@ -100,19 +102,9 @@ class GremlinActionActor(
         }
         next ! newSession.markAsFailed
       case _ =>
-        log(start, now(), scala.util.Success(""), requestName, session)
+        log(start, now(), scala.util.Success(""), requestName, session, statsEngine)
         next ! newSession
     }
   }
 
-  def log(start: Long, end: Long, tried: Try[_], requestName: Expression[String], session: Session): Unit = {
-    val timing = ResponseTimings(start, end)
-    val status = tried match {
-      case scala.util.Success(_) => OK
-      case scala.util.Failure(_) => KO
-    }
-    requestName.apply(session).foreach { resolvedRequestName =>
-      statsEngine.logResponse(session, resolvedRequestName, timing, status, None, None)
-    }
-  }
 }
