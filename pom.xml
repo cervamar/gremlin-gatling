@@ -10,19 +10,14 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <scala.compat.version>2.11</scala.compat.version>
-    <gatling.version>2.2.3</gatling.version>
-    <gatling-plugin.version>2.2.1</gatling-plugin.version>
-    <gremlin.version>3.2.4</gremlin.version>
+    <scala.compat.version>2.12.3</scala.compat.version>
+    <gatling.version>2.3.0</gatling.version>
+    <gatling-plugin.version>2.2.4</gatling-plugin.version>
+    <gremlin.version>3.2.3</gremlin.version>
     <scala-maven-plugin.version>3.2.2</scala-maven-plugin.version>
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>2.11.8</version>
-    </dependency>
     <!-- Gremlin -->
     <dependency>
       <groupId>org.apache.tinkerpop</groupId>
@@ -81,7 +76,13 @@
     <dependency>
       <groupId>org.neo4j</groupId>
       <artifactId>neo4j-tinkerpop-api-impl</artifactId>
-       <version>0.3-2.3.3</version> <!--<version>0.4-3.0.3</version> -->
+      <version>0.7-3.2.3</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.michaelpollmeier</groupId>
