@@ -22,7 +22,7 @@ abstract class GremlinBuilder(requestName: Expression[String]) extends GremlinCh
     import ctx._
     val statsEngine = coreComponents.statsEngine
     val gremlinComponent = getGremlinComponent(protocolComponentsRegistry)
-    new GremlinExecuteAction(requestName, query, checks.toList, gremlinComponent.gremlinProtocol, statsEngine, next)
+    GremlinExecuteAction(requestName, query, checks.toList, extract, gremlinComponent.gremlinProtocol, statsEngine, next)
   }
 }
 

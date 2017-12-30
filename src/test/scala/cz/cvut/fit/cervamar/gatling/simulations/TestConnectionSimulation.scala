@@ -16,10 +16,14 @@ class TestConnectionSimulation  extends Simulation {
           .query("g.V().count()")
           .check(simpleCheck(result => result.size == 1)))
     .exec(gremlin("countVertices2")
-      .query("g.V().count()")
-      .check(simpleCheck(result => result.isEmpty)))
+      .query("g.V(4)")
+      .check(simpleCheck(result => result.size == 1))
+      .extractResultAndSaveAs(result => result.head.getString, "vertex"))
+       .exec{session =>
+          println(session("vertex").as[String])
+      session}
   setUp(
-    scn.inject(rampUsers(2000) over 20)
+    scn.inject(atOnceUsers(2))
   ).protocols(gremlinProtocol)
 
 }

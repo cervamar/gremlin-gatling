@@ -57,7 +57,7 @@ public class GremlinServerClientTest {
 
     @Test
     public void shouldCreateGraph() throws Exception {
-        GremlinServerClient gremlinServerClient = new GremlinServerClient(createLocalCluster());
+        GremlinServerClient gremlinServerClient = GremlinServerClient.createGremlinServerClient("src/main/resources/remote.yaml");
         List<Result> results = gremlinServerClient.submit("g.V().count()", Collections.emptyMap());
         assertTrue(results.size() > 0);
         assertEquals(6L, results.get(0).getLong());

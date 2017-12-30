@@ -17,7 +17,7 @@ import io.gatling.core.util.NameGen
 import org.apache.tinkerpop.gremlin.driver.Result
 
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by cerva on 13/04/2017.
@@ -43,22 +43,18 @@ case class GremlinExecuteAction (
      requestName: Expression[String],
      gremlinQuery: GremlinQuery,
      checks: List[ResultCheck],
+     extractor: Option[Extractor],
      protocol: GremlinProtocol,
      statsEngine: StatsEngine,
      next: Action) extends GremlinAction {
 
-  def createJavaMap(getVariables: Map[String, Object]): util.Map[String, Object] = {
-    val map = new util.HashMap[String, Object]()
-    getVariables.foreach((entry) => map.put(entry._1, entry._2))
-    map
-  }
   override def execute(session: Session): Unit = {
     val resolvedQuery = gremlinQuery.getPlainQuery(session, protocol.serverClient.isSupportNumericIds)
     val startTime = now()
     protocol.serverClient.submitAsync(resolvedQuery, createJavaMap(gremlinQuery.getVariables), new Consumer[util.List[Result]] {
       override def accept(result: util.List[Result]): Unit = {
         if (result == null) {
-          log(startTime, now(), scala.util.Success(""), requestName, session, statsEngine)
+          log(startTime, now(), scala.util.Failure(new Throwable), requestName, session, statsEngine)
           next ! session
         }
         else {
@@ -66,35 +62,27 @@ case class GremlinExecuteAction (
         }
       }
     })
-/*    try {
-      val result = protocol.serverClient.submit(resolvedQuery, createJavaMap(gremlinQuery.getVariables))
-      val endTime = now()
-
-      log(startTime, endTime, scala.util.Success(""), requestName, session)
-      printResult(result, timings.responseTime, resolvedQuery, Status("OK"))
-    }
-    catch {
-      case ex: Exception => {
-        val endTime = now()
-        log(startTime, endTime, scala.util.Failure(""), requestName, session)
-        statsEngine.logResponse(session, requestName.apply(session).get, timings, Status("KO"), None, None)
-      }
-    }*/
-    //next ! session
   }
   @inline
   private def now() = ClockSingleton.nowMillis
 
-    def printResult(result: util.List[Result], time: Long, query: String, status: Status) {
+  def createJavaMap(getVariables: Map[String, Object]): util.Map[String, Object] = {
+    val map = new util.HashMap[String, Object]()
+    getVariables.foreach((entry) => map.put(entry._1, entry._2))
+    map
+  }
+
+  def printResult(result: util.List[Result], time: Long, query: String, status: Status) {
     result.forEach( new Consumer[Result] {
       override def accept(t: Result): Unit = println(t)
     })
     println(query + "processed in time " + time + " with result " + status)
   }
 
-  private def performChecks(session: Session, start: Long, tried: List[Result]) = {
-    val (modifySession, error) = Check.check(tried, session, checks)
-    val newSession = modifySession(session)
+  private def performChecks(session: Session, start: Long, results: List[Result]) = {
+   println("neco delam")
+    val (modifySession, error) = Check.check(results, session, checks)
+    var newSession = modifySession(session)
     error match {
       case Some(failure) =>
         requestName.apply(session).map { resolvedRequestName =>
@@ -102,6 +90,16 @@ case class GremlinExecuteAction (
         }
         next ! newSession.markAsFailed
       case _ =>
+        if(extractor.isDefined) {
+          println(results)
+          val value = Try(extractor.get.extractionMethod(results))
+          value match {
+            case Success(v) => newSession = newSession.set(extractor.get.key, v)
+            case Failure(ex) => {
+              println(s"Problem: ${ex.getMessage}")
+            }
+          }
+        }
         log(start, now(), scala.util.Success(""), requestName, session, statsEngine)
         next ! newSession
     }
