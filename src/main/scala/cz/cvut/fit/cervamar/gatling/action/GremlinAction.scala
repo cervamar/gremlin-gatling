@@ -3,10 +3,12 @@ package cz.cvut.fit.cervamar.gatling.action
 import java.util
 import java.util.function.Consumer
 
+import com.typesafe.scalalogging.LazyLogging
 import cz.cvut.fit.cervamar.gatling.ResultCheck
 import cz.cvut.fit.cervamar.gatling.protocol.GremlinProtocol
+import cz.cvut.fit.cervamar.gatling.util.ScalaUtils
 import cz.cvut.fit.cervamar.gremlin.core.GremlinQuery
-import io.gatling.commons.stats.{KO, OK, Status}
+import io.gatling.commons.stats.{KO, OK}
 import io.gatling.commons.util.ClockSingleton
 import io.gatling.core.action.{Action, ChainableAction}
 import io.gatling.core.check.Check
@@ -46,12 +48,12 @@ case class GremlinExecuteAction (
      extractor: Option[Extractor],
      protocol: GremlinProtocol,
      statsEngine: StatsEngine,
-     next: Action) extends GremlinAction {
+     next: Action) extends GremlinAction with LazyLogging {
 
   override def execute(session: Session): Unit = {
     val resolvedQuery = gremlinQuery.getPlainQuery(session, protocol.serverClient.isSupportNumericIds)
     val startTime = now()
-    protocol.serverClient.submitAsync(resolvedQuery, createJavaMap(gremlinQuery.getVariables), new Consumer[util.List[Result]] {
+    protocol.serverClient.submitAsync(resolvedQuery, ScalaUtils.createJavaMap(gremlinQuery.getVariables), new Consumer[util.List[Result]] {
       override def accept(result: util.List[Result]): Unit = {
         if (result == null) {
           log(startTime, now(), scala.util.Failure(new Throwable), requestName, session, statsEngine)
@@ -66,21 +68,19 @@ case class GremlinExecuteAction (
   @inline
   private def now() = ClockSingleton.nowMillis
 
-  def createJavaMap(getVariables: Map[String, Object]): util.Map[String, Object] = {
-    val map = new util.HashMap[String, Object]()
-    getVariables.foreach((entry) => map.put(entry._1, entry._2))
-    map
+  def extractValue(session: Session, results: List[Result]): Session = {
+    if(extractor.isDefined) {
+      val value = Try(extractor.get.extractionMethod(results))
+      value match {
+        case Success(v) => return session.set(extractor.get.key, v)
+        case Failure(ex) =>
+          logger.warn(s"Problem during extracting value: ${ex.getMessage}")
+      }
+    }
+    session
   }
 
-  def printResult(result: util.List[Result], time: Long, query: String, status: Status) {
-    result.forEach( new Consumer[Result] {
-      override def accept(t: Result): Unit = println(t)
-    })
-    println(query + "processed in time " + time + " with result " + status)
-  }
-
-  private def performChecks(session: Session, start: Long, results: List[Result]) = {
-   println("neco delam")
+  private def performChecks(session: Session, start: Long, results: List[Result]): Unit = {
     val (modifySession, error) = Check.check(results, session, checks)
     var newSession = modifySession(session)
     error match {
@@ -90,16 +90,7 @@ case class GremlinExecuteAction (
         }
         next ! newSession.markAsFailed
       case _ =>
-        if(extractor.isDefined) {
-          println(results)
-          val value = Try(extractor.get.extractionMethod(results))
-          value match {
-            case Success(v) => newSession = newSession.set(extractor.get.key, v)
-            case Failure(ex) => {
-              println(s"Problem: ${ex.getMessage}")
-            }
-          }
-        }
+        newSession = extractValue(newSession, results)
         log(start, now(), scala.util.Success(""), requestName, session, statsEngine)
         next ! newSession
     }
