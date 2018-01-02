@@ -1,7 +1,7 @@
 package cz.cvut.fit.cervamar.gatling.simulations
 
 import cz.cvut.fit.cervamar.gatling.GremlinPredef._
-import cz.cvut.fit.cervamar.gatling.protocol.{GremlinProtocol, GremlinServerClient}
+import cz.cvut.fit.cervamar.gatling.protocol.GremlinProtocol
 import io.gatling.core.Predef._
 
 /**
@@ -9,7 +9,7 @@ import io.gatling.core.Predef._
   */
 class TestConnectionSimulation  extends Simulation {
 
-  val gremlinProtocol = new GremlinProtocol(GremlinServerClient.createGremlinServerClient("src/main/resources/remote.yaml"))
+  val gremlinProtocol = new GremlinProtocol("src/main/resources/remote.yaml")
 
   def scn = scenario("User")
         .exec(gremlin("countVertices")

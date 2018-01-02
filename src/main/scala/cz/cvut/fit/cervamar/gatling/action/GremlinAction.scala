@@ -3,7 +3,6 @@ package cz.cvut.fit.cervamar.gatling.action
 import java.util
 import java.util.function.Consumer
 
-import com.typesafe.scalalogging.LazyLogging
 import cz.cvut.fit.cervamar.gatling.ResultCheck
 import cz.cvut.fit.cervamar.gatling.protocol.GremlinProtocol
 import cz.cvut.fit.cervamar.gatling.util.ScalaUtils
@@ -48,12 +47,13 @@ case class GremlinExecuteAction (
      extractor: Option[Extractor],
      protocol: GremlinProtocol,
      statsEngine: StatsEngine,
-     next: Action) extends GremlinAction with LazyLogging {
+     next: Action) extends GremlinAction {
 
   override def execute(session: Session): Unit = {
     val resolvedQuery = gremlinQuery.getPlainQuery(session, protocol.serverClient.isSupportNumericIds)
     val startTime = now()
-    protocol.serverClient.submitAsync(resolvedQuery, ScalaUtils.createJavaMap(gremlinQuery.getVariables), new Consumer[util.List[Result]] {
+    protocol.serverClient.submitAsync(resolvedQuery, ScalaUtils.createJavaMap(gremlinQuery.getVariables),
+      new Consumer[util.List[Result]] {
       override def accept(result: util.List[Result]): Unit = {
         if (result == null) {
           log(startTime, now(), scala.util.Failure(new Throwable), requestName, session, statsEngine)
@@ -65,6 +65,7 @@ case class GremlinExecuteAction (
       }
     })
   }
+
   @inline
   private def now() = ClockSingleton.nowMillis
 

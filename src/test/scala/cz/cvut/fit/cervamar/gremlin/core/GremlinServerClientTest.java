@@ -1,9 +1,5 @@
 package cz.cvut.fit.cervamar.gremlin.core;
 
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.List;
-
 import cz.cvut.fit.cervamar.gatling.protocol.GremlinServerClient;
 import org.apache.tinkerpop.gremlin.driver.Cluster;
 import org.apache.tinkerpop.gremlin.driver.Result;
@@ -12,6 +8,10 @@ import org.apache.tinkerpop.gremlin.server.Settings;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -57,7 +57,7 @@ public class GremlinServerClientTest {
 
     @Test
     public void shouldCreateGraph() throws Exception {
-        GremlinServerClient gremlinServerClient = GremlinServerClient.createGremlinServerClient("src/main/resources/remote.yaml");
+        GremlinServerClient gremlinServerClient = GremlinServerClient.createClient("src/main/resources/remote.yaml");
         List<Result> results = gremlinServerClient.submit("g.V().count()", Collections.emptyMap());
         assertTrue(results.size() > 0);
         assertEquals(6L, results.get(0).getLong());

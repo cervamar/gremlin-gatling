@@ -25,4 +25,12 @@ object GremlinProtocol {
 }
 
 case class GremlinProtocol (serverClient : GremlinServerClient) extends Protocol {
+
+  def this(path: String) {
+      this(GremlinServerClient.createClient(path))
+  }
+
+  def this() {
+    this(GremlinServerClient.createDefaultClient())
+  }
 }

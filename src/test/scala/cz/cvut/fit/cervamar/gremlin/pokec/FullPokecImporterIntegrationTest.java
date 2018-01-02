@@ -1,12 +1,12 @@
 package cz.cvut.fit.cervamar.gremlin.pokec;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-
 import cz.cvut.fit.cervamar.gatling.protocol.GremlinServerClient;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
 
@@ -21,7 +21,7 @@ public class FullPokecImporterIntegrationTest extends GremlinServerTestBase {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        gremlinServerClient = GremlinServerClient.createGremlinServerClient();
+        gremlinServerClient = GremlinServerClient.createDefaultClient();
     }
 
     @Test

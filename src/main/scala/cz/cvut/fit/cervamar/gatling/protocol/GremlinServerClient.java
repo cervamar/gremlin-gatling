@@ -1,22 +1,18 @@
 package cz.cvut.fit.cervamar.gatling.protocol;
 
 
+import org.apache.tinkerpop.gremlin.driver.Client;
+import org.apache.tinkerpop.gremlin.driver.Cluster;
+import org.apache.tinkerpop.gremlin.driver.Result;
+import org.apache.tinkerpop.gremlin.driver.ResultSet;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
-
-import org.apache.tinkerpop.gremlin.driver.Client;
-import org.apache.tinkerpop.gremlin.driver.Cluster;
-import org.apache.tinkerpop.gremlin.driver.Result;
-import org.apache.tinkerpop.gremlin.driver.ResultSet;
 
 /**
  * Created on 6/15/2017.
@@ -31,11 +27,11 @@ public class GremlinServerClient {
 
     private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
-    public static GremlinServerClient createGremlinServerClient() throws ExecutionException, InterruptedException {
-        return new GremlinServerClient(Cluster.open());
+    public static GremlinServerClient createDefaultClient() throws ExecutionException, InterruptedException, FileNotFoundException {
+        return createClient("src/main/resources/remote.yaml");
     }
 
-    public static GremlinServerClient createGremlinServerClient(String serverConfig) throws FileNotFoundException, ExecutionException, InterruptedException {
+    public static GremlinServerClient createClient(String serverConfig) throws FileNotFoundException, ExecutionException, InterruptedException {
         File serverConfigFile = new File(serverConfig);
         assert(serverConfigFile.exists()) : "Gremlin remote server configuration file " + serverConfigFile.getAbsolutePath() + " doesn't exist." ;
         return new GremlinServerClient(Cluster.build(serverConfigFile).create());

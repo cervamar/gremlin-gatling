@@ -1,7 +1,7 @@
 package cz.cvut.fit.cervamar.gatling.simulations
 
 import cz.cvut.fit.cervamar.gatling.GremlinPredef.{gremlin, simpleCheck}
-import cz.cvut.fit.cervamar.gatling.protocol.{GremlinProtocol, GremlinServerClient}
+import cz.cvut.fit.cervamar.gatling.protocol.GremlinProtocol
 import io.gatling.core.Predef._
 import org.apache.tinkerpop.gremlin.driver.Result
 
@@ -10,7 +10,7 @@ import org.apache.tinkerpop.gremlin.driver.Result
   */
 class GatlingSimulation  extends Simulation {
 
-  val gremlinProtocol = new GremlinProtocol(GremlinServerClient.createGremlinServerClient("src/main/resources/remote.yaml"))
+  val gremlinProtocol = new GremlinProtocol("src/main/resources/remote.yaml")
 
   val idFeeder = Iterator.continually(Map("id" -> "1", "id2" -> "2"))
 
@@ -34,7 +34,7 @@ class GatlingSimulation  extends Simulation {
   ).protocols(gremlinProtocol)
 
   def parseVertexId(result : List[Result]) : String = {
-      val vertex = result.get(0).getString
+      val vertex = result.get.head.getString
       val pattern = "v\\[(\\w)\\]".r
     vertex match {
       case pattern(id) => id
