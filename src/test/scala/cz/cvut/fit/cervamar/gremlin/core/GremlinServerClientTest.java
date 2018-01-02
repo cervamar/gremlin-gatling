@@ -1,5 +1,9 @@
 package cz.cvut.fit.cervamar.gremlin.core;
 
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+
 import cz.cvut.fit.cervamar.gatling.protocol.GremlinServerClient;
 import org.apache.tinkerpop.gremlin.driver.Cluster;
 import org.apache.tinkerpop.gremlin.driver.Result;
@@ -7,11 +11,8 @@ import org.apache.tinkerpop.gremlin.server.GremlinServer;
 import org.apache.tinkerpop.gremlin.server.Settings;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -22,6 +23,7 @@ import static org.junit.Assert.assertTrue;
  * @author Marek.Cervak
  */
 
+@Ignore
 public class GremlinServerClientTest {
     public static final int PORT = 8184;
     private GremlinServer server;

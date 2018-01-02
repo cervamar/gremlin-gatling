@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static cz.cvut.fit.cervamar.gremlin.pokec.PokecImporter.ID;
+
 /**
  * Created on 12/26/2017.
  *
@@ -12,8 +14,8 @@ import java.util.stream.Collectors;
 public class PokecQueryBuilder {
     public String createInsertEdgeQuery(String fromId, String toId, String relation) {
         return String.join("\n",
-                findVertexAndAssign(Collections.singletonMap("id", fromId), "v1"),
-                findVertexAndAssign(Collections.singletonMap("id", toId), "v2"),
+                findVertexAndAssign(Collections.singletonMap(ID, fromId), "v1"),
+                findVertexAndAssign(Collections.singletonMap(ID, toId), "v2"),
                 "v1.addEdge('" + relation + "',v2)");
     }
 

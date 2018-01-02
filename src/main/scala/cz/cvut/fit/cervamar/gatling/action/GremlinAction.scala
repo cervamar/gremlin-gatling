@@ -75,7 +75,8 @@ case class GremlinExecuteAction (
       value match {
         case Success(v) => return session.set(extractor.get.key, v)
         case Failure(ex) =>
-          logger.warn(s"Problem during extracting value: ${ex.getMessage}")
+          logger.warn("Problem during extracting value with key: {}", extractor.get.key)
+          next ! session.markAsFailed
       }
     }
     session

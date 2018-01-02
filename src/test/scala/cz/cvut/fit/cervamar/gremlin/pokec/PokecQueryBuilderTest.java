@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import static cz.cvut.fit.cervamar.gremlin.pokec.PokecImporter.ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -15,7 +16,6 @@ import static org.junit.Assert.assertTrue;
  */
 public class PokecQueryBuilderTest {
 
-    public static final String ID = "id";
     private PokecQueryBuilder pokecQueryBuilder = new PokecQueryBuilder();
 
     @Test
@@ -23,7 +23,7 @@ public class PokecQueryBuilderTest {
         Map<String, String> vertex = new HashMap<>();
         vertex.put(ID, "1");
         String query = pokecQueryBuilder.createInsertQuery(vertex);
-        assertEquals("graph.addVertex('id','1')", query);
+        assertEquals("graph.addVertex('" + ID + "','1')", query);
     }
 
 
@@ -34,8 +34,8 @@ public class PokecQueryBuilderTest {
         vertex.put("gender", "1");
         String query = pokecQueryBuilder.createInsertQuery(vertex);
         //order is not important
-        assertTrue("graph.addVertex('id','1','gender','1')".equals(query) ||
-                "graph.addVertex('gender','1','id','1')".equals(query));
+        assertTrue(("graph.addVertex('" + ID + "','1','gender','1')").equals(query) ||
+                ("graph.addVertex('gender','1','" + ID + "','1')").equals(query));
     }
 
     @Test
@@ -43,7 +43,7 @@ public class PokecQueryBuilderTest {
         Map<String, Object> properties = new HashMap<>();
         properties.put(ID, "1");
         String query = pokecQueryBuilder.findVertexAndAssign(properties, "v1");
-        assertEquals("v1=g.V().has('id','1').next()", query);
+        assertEquals("v1=g.V().has('" + ID + "','1').next()", query);
     }
 
     @Test
@@ -51,8 +51,8 @@ public class PokecQueryBuilderTest {
         String from = "1";
         String to = "2";
         String query = pokecQueryBuilder.createInsertEdgeQuery(from, to, "likes");
-        assertEquals("v1=g.V().has('id','1').next()\n" +
-                "v2=g.V().has('id','2').next()\n" +
+        assertEquals("v1=g.V().has('" + ID + "','1').next()\n" +
+                "v2=g.V().has('" + ID + "','2').next()\n" +
                 "v1.addEdge('likes',v2)", query);
     }
 }

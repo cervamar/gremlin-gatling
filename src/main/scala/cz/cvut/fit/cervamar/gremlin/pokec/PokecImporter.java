@@ -23,7 +23,8 @@ import org.apache.commons.logging.LogFactory;
  * @author Marek.Cervak
  */
 public class PokecImporter {
-    public static final List<String> COLUMN_NAMES = Arrays.asList("id", "public", "completion_percentage", "gender", "region", "last_login", "registration", "age", "body", "I_am_working_in_field", "spoken_languages", "hobbies",
+    public static final String ID = "pokecId";
+    public static final List<String> COLUMN_NAMES = Arrays.asList(ID, "public", "completion_percentage", "gender", "region", "last_login", "registration", "age", "body", "I_am_working_in_field", "spoken_languages", "hobbies",
             "I_most_enjoy_good_food", "pets", "body_type", "my_eyesight", "eye_color", "hair_color", "hair_type", "completed_level_of_education", "favourite_color",
             "relation_to_smoking", "relation_to_alcohol", "sign_in_zodiac", "on_pokec_i_am_looking_for", "love_is_for_me", "relation_to_casual_sex", "my_partner_should_be",
             "marital_status	children", "relation_to_children", "I_like_movies", "I_like_watching_movie", "I_like_music", "I_mostly_like_listening_to_music", "the_idea_of_good_evening",
@@ -57,7 +58,7 @@ public class PokecImporter {
     public void loadVerticesToServer(File inputFile) throws IOException, InterruptedException {
         loadToServer(inputFile, line -> {
             Map<String, String> vertex = createVertexRecord(line);
-            if(isInRange(vertex.getOrDefault("id", "1"))) {
+            if(isInRange(vertex.getOrDefault(ID, "1"))) {
                 return Optional.of(pokecQueryBuilder.createInsertQuery(vertex));
             }
             else return Optional.empty();

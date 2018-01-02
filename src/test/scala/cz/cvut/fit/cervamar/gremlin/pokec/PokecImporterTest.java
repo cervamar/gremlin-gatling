@@ -10,6 +10,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static cz.cvut.fit.cervamar.gremlin.pokec.PokecImporter.ID;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -43,7 +44,7 @@ public class PokecImporterTest {
         String record = FileUtils.readFileToString(new File(SRC_TEST_RESOURCES_POKEC + "/" + "profiles-1.txt"));
         Map<String, String> vertex = PokecImporter.createVertexRecord(record);
         assertEquals(4, vertex.size());
-        assertEquals("1", vertex.get("id"));
+        assertEquals("1", vertex.get(ID));
         assertEquals("1", vertex.get("gender"));
         assertEquals("zilinsky kraj, zilina", vertex.get("region"));
         assertEquals("26", vertex.get("age"));
