@@ -2,6 +2,8 @@ package cz.cvut.fit.cervamar.gremlin.pokec;
 
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import cz.cvut.fit.cervamar.gatling.protocol.GremlinServerClient;
 import org.apache.tinkerpop.gremlin.driver.Cluster;
@@ -73,6 +75,20 @@ public class GremlinServerImporterTest extends GremlinServerTestBase {
         gremlinServerClient.submit("v1 = g.V().has('id', '1').next()\n" +
                 "v2 = g.V().has('id', '1').next()\n" +
                 "v1.addEdge('likes', v2)");
+        assertEquals(2L, countVertices());
+        assertEquals(1L, countEdges());
+    }
+
+    @Test
+    public void addEdgeBetweenVerticesByTheirIdsParam() throws Exception {
+        Map<String, Object> vertexParams = new HashMap<>();
+        vertexParams.put("param1", "1");
+        vertexParams.put("param2", "2");
+        gremlinServerClient.submit("graph.addVertex('pokecId', param1, 'name', 'jarda');" +
+                "graph.addVertex('pokecId', param2, 'name', 'karel')", vertexParams);
+        gremlinServerClient.submit("g.V().has('pokecId', param1).as('v1')." +
+        "V().has('pokecId', param2).as('v2')." +
+        "addE('link').from('v1').to('v2')", vertexParams);
         assertEquals(2L, countVertices());
         assertEquals(1L, countEdges());
     }

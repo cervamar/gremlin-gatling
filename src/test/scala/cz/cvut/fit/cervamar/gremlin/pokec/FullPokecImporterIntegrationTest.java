@@ -32,10 +32,17 @@ public class FullPokecImporterIntegrationTest extends GremlinServerTestBase {
         assertEquals(0L, countEdges());
 
         PokecImporter pokecImporter = new PokecImporter(gremlinServerClient);
-        pokecImporter.loadVerticesToServer(SRC_TEST_RESOURCES_POKEC + "soc-pokec-profiles/soc-pokec-profiles.txt");
-        pokecImporter.loadEdgesToServer(SRC_TEST_RESOURCES_POKEC + "soc-pokec-relationships/soc-pokec-relationships.txt");
+        long startTime = System.currentTimeMillis();
 
-        assertEquals(100L, countVertices());
-        assertEquals(82L, countEdges());
+        pokecImporter.loadVerticesToServer(SRC_TEST_RESOURCES_POKEC + "soc-pokec-profiles/profiles-1000.txt");
+        //pokecImporter.loadVerticesToServer(SRC_TEST_RESOURCES_POKEC + "soc-pokec-profiles/soc-pokec-profiles.txt");
+        //pokecImporter.loadEdgesToServer(SRC_TEST_RESOURCES_POKEC + "soc-pokec-relationships/soc-pokec-relationships.txt");
+        pokecImporter.loadEdgesToServer(SRC_TEST_RESOURCES_POKEC + "soc-pokec-relationships/relations-1000.txt");
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("That took " + (endTime - startTime) + " milliseconds");
+
+        assertEquals(1000L, countVertices());
+        assertEquals(841L, countEdges());
     }
-}
+    }

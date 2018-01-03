@@ -1,8 +1,11 @@
 package cz.cvut.fit.cervamar.gremlin.pokec;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import cz.cvut.fit.cervamar.gremlin.pokec.PokecImporter.QueryWrapper;
 
 import static cz.cvut.fit.cervamar.gremlin.pokec.PokecImporter.ID;
 
@@ -12,28 +15,54 @@ import static cz.cvut.fit.cervamar.gremlin.pokec.PokecImporter.ID;
  * @author Marek.Cervak
  */
 public class PokecQueryBuilder {
-    public String createInsertEdgeQuery(String fromId, String toId, String relation) {
-        return String.join("\n",
-                findVertexAndAssign(Collections.singletonMap(ID, fromId), "v1"),
-                findVertexAndAssign(Collections.singletonMap(ID, toId), "v2"),
-                "v1.addEdge('" + relation + "',v2)");
+
+    public static final String PARAM = "__param__";
+
+    public QueryWrapper createInsertEdgeQuery(String fromId, String toId, String relation) {
+        Map<String, Object> params = new HashMap<>();
+        return new QueryWrapper(String.join(".",
+                "g",
+                findVertexAndAssign(Collections.singletonMap(ID, fromId), "v1", params),
+                findVertexAndAssign(Collections.singletonMap(ID, toId), "v2", params),
+                "addE('" + relation + "').from('v1').to('v2')"), params);
     }
 
-    String createInsertQuery(Map<String, String> vertexRecord) {
-        return "graph.addVertex(" +
+    QueryWrapper createInsertQuery(Map<String, String> vertexRecord) {
+         return new QueryWrapper("graph.addVertex(" +
                 vertexRecord.entrySet()
                         .stream()
-                        .map(entry -> "'" + entry.getKey() + "','" + entry.getValue() + "'")
+                        .map(entry -> "'" + entry.getKey() + "'," + createParam(entry.getKey()))
                         .collect(Collectors.joining(",")) +
-                ")";
+                ")", toParamMap(vertexRecord));
     }
 
-    String findVertexAndAssign(Map<String, Object> properties, String assignTo) {
-        return  assignTo + "=g.V()" +
+    private Map<String, Object> toParamMap(Map<String, String> vertexRecord) {
+        Map<String, Object> ret = new HashMap<>();
+        vertexRecord.forEach((key, value) -> ret.put(createParam(key), value));
+        return ret;
+    }
+
+    private Map<String, Object> toParamMap(String prefix, Map<String, String> vertexRecord) {
+        Map<String, Object> ret = new HashMap<>();
+        vertexRecord.forEach((key, value) -> ret.put(createParam(prefix, key), value));
+        return ret;
+    }
+
+    private String createParam(String key) {
+        return PARAM + key;
+    }
+
+    private String createParam(String prefix, String key) {
+        return prefix + PARAM + key;
+    }
+
+    String findVertexAndAssign(Map<String, String> properties, String assignTo, Map<String, Object> params) {
+        params.putAll(toParamMap(assignTo, properties));
+        return  "V()" +
                 properties.entrySet()
                         .stream()
-                        .map(e -> ".has('" + e.getKey() + "','" + e.getValue() + "')")
+                        .map(e -> ".has('" + e.getKey() + "'," + createParam(assignTo, e.getKey()) + ")")
                         .collect(Collectors.joining())
-                + ".next()";
+                + ".as('" + assignTo + "')";
     }
 }

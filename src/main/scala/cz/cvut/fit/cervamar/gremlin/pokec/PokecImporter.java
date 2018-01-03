@@ -12,6 +12,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import cz.cvut.fit.cervamar.gatling.protocol.GremlinServerClient;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.logging.Log;
@@ -102,7 +106,7 @@ public class PokecImporter {
         return Integer.parseInt(value) <= LIMIT;
     }
 
-    private void loadToServer(File records, Function<String, Optional<String>> prepareRecord) throws InterruptedException, IOException {
+    private void loadToServer(File records, Function<String, Optional<QueryWrapper>> prepareRecord) throws InterruptedException, IOException {
         LineIterator it = FileUtils.lineIterator(records, "UTF-8");
         int cnt = 0;
         try {
@@ -112,9 +116,9 @@ public class PokecImporter {
                 }
                 String line = it.nextLine();
                 try {
-                    Optional<String> query = prepareRecord.apply(line);
+                    Optional<QueryWrapper> query = prepareRecord.apply(line);
                     if(query.isPresent()) {
-                        serverClient.submit(query.get());
+                        serverClient.submit(query.get().query, query.get().variables);
                     }
                 }
                 catch (ExecutionException e) {
@@ -124,5 +128,14 @@ public class PokecImporter {
         } finally {
             LineIterator.closeQuietly(it);
         }
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class QueryWrapper {
+        private String query;
+        private Map<String, Object> variables;
     }
 }
