@@ -8,14 +8,11 @@ import org.apache.tinkerpop.gremlin.driver.Result
 /**
   * Created by cerva on 14/04/2017.
   */
-class GatlingSimulation  extends Simulation {
+class GremlinModernSimulation  extends Simulation {
 
   val gremlinProtocol = new GremlinProtocol("src/main/resources/remote.yaml")
 
-  val idFeeder = Iterator.continually(Map("id" -> "1", "id2" -> "2"))
-
   def scn = scenario("User")
-    .feed(idFeeder)
     .exec(gremlin("getProfile")
       .query("g.V().has('name','marko').next()")
       .extractResultAndSaveAs(parseVertexId, "profileId"))

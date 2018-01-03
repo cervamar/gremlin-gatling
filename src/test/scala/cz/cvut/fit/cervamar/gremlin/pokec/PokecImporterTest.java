@@ -61,24 +61,24 @@ public class PokecImporterTest {
     @Test
     public void loadVerticesToServer() throws InterruptedException, ExecutionException, IOException {
         pokecImporter.loadVerticesToServer(SRC_TEST_RESOURCES_POKEC + "/" + "profiles-100.txt");
-        verify(serverClient, times(100)).submit(any());
+        verify(serverClient, times(100)).submit(any(), any());
     }
 
     @Test
     public void loadEdgesToServer() throws InterruptedException, ExecutionException, IOException {
         pokecImporter.loadEdgesToServer(SRC_TEST_RESOURCES_POKEC + "/" + "relations-100.txt");
-        verify(serverClient, times(100)).submit(any());
+        verify(serverClient, times(100)).submit(any(), any());
     }
 
     @Test
     public void relationsOutOfRangeShouldBeFiltered() throws InterruptedException, ExecutionException, IOException {
         pokecImporter.loadEdgesToServer(SRC_TEST_RESOURCES_POKEC + "/" + "relations-out-of-range.txt");
-        verify(serverClient, times(2)).submit(any());
+        verify(serverClient, times(2)).submit(any(), any());
     }
 
     @Test
     public void profilesOutOfRangeShouldBeFiltered() throws InterruptedException, ExecutionException, IOException {
         pokecImporter.loadVerticesToServer(SRC_TEST_RESOURCES_POKEC + "/" + "profiles-out-of-range.txt");
-        verify(serverClient, times(1)).submit(any());
+        verify(serverClient, times(1)).submit(any(), any());
     }
 }
