@@ -14,7 +14,7 @@ class GremlinModernSimulation  extends Simulation {
 
   def scn = scenario("User")
     .exec(gremlin("getProfile")
-      .query("g.V().has('name','marko').next()")
+      .vertexByProperty("name", "marko")
       .extractResultAndSaveAs(parseVertexId, "profileId"))
     .exec(gremlin("getUserFriends")
       .neighbours("${profileId}", 1)

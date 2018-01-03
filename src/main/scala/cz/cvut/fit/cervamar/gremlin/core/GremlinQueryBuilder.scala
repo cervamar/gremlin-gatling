@@ -72,6 +72,12 @@ class GremlinQueryBuilder() {
     GremlinQueryHolder(toExpression("g.V(%s)"), variables, Map.empty)
   }
 
+
+  def getVertexByProperty(property: Expression[String], value: Expression[String]) : GremlinQuery = {
+    val variables = Map("property" -> property, "value" -> value)
+    GremlinQueryHolder(toExpression("g.V().has(%s, %s).next()"), variables, Map.empty)
+  }
+
   def query(query: String) : GremlinQuery = {
     GremlinQueryHolder(toExpression(query), Map.empty, Map.empty)
   }

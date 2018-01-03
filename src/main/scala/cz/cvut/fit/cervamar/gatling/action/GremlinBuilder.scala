@@ -40,6 +40,13 @@ case class GremlinVertexBuilder(requestName: Expression[String], id: Expression[
     }
 }
 
+case class GremlinVertexByPropertyBuilder(requestName: Expression[String], property: Expression[String], value: Expression[String]) extends GremlinBuilder(requestName) {
+  override def build(ctx: ScenarioContext, next: Action): Action = {
+    val queryTemplate = gremlinQueryBuilder.getVertexByProperty(property, value)
+    createGremlinAction(ctx, next, queryTemplate)
+  }
+}
+
 case class GremlinNeighborsBuilder (requestName: Expression[String], id: Expression[String], distance: Int) extends GremlinBuilder (requestName) {
   override def build(ctx: ScenarioContext, next: Action): Action = {
     val queryTemplate = gremlinQueryBuilder.neighbors(id, distance)
