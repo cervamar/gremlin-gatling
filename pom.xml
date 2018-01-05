@@ -60,7 +60,6 @@
             <groupId>org.apache.tinkerpop</groupId>
             <artifactId>gremlin-server</artifactId>
             <version>${gremlin.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
