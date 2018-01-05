@@ -1,6 +1,6 @@
 package cz.cvut.fit.cervamar.gatling.simulations
 
-import cz.cvut.fit.cervamar.gatling.GremlinPredef.{gremlin, simpleCheck}
+import cz.cvut.fit.cervamar.gatling.GremlinPredef._
 import cz.cvut.fit.cervamar.gatling.protocol.GremlinProtocol
 import io.gatling.core.Predef._
 import org.apache.tinkerpop.gremlin.driver.Result
