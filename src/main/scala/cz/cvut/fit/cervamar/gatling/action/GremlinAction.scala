@@ -75,6 +75,7 @@ case class GremlinExecuteAction(
         }
 
         override def acceptError(t: Throwable): Unit = {
+          logger.warn("Something went wrong {}", t.getMessage)
           log(startTime, now(), Try(t), requestName, session, statsEngine)
           next ! session.markAsFailed
         }
@@ -89,7 +90,10 @@ case class GremlinExecuteAction(
     if (extractor.isDefined) {
       val value = Try(extractor.get.extractionMethod(results))
       value match {
-        case Success(v) => return session.set(extractor.get.key, v)
+        case Success(v) => {
+          logger.debug("Setting {} as {}", extractor.get.key, v)
+          return session.set(extractor.get.key, v)
+        }
         case Failure(ex) =>
           logger.warn("Problem during extracting value with key: {}", extractor.get.key)
           next ! session.markAsFailed
