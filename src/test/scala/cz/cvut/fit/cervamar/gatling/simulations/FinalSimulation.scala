@@ -22,7 +22,7 @@ class FinalSimulation  extends Simulation {
       .check(simpleCheck(res => res.size == 1))
       .extractResultAndSaveAs(parseVertexId, "profileId"))
     .exec(gremlin("getUserFriends")
-      .neighbours("${profileId}", 1)
+      .neighbours("${profileId}")
       .extractResultAndSaveAs(parseVertexId, "neighbourId"))
     .doIf("${neighbourId.exists()}") {
       exec(gremlin("getFriendProfile")
@@ -32,7 +32,7 @@ class FinalSimulation  extends Simulation {
         .mutualNeigbours("${profileId}", "${neighbourId}"))
     }
 
-  setUp(scn.inject(constantUsersPerSec(5) during 10))
+  setUp(scn.inject(constantUsersPerSec(1) during 1))
     .protocols(gremlinProtocol)
     .assertions(
       global.failedRequests.count.is(0),

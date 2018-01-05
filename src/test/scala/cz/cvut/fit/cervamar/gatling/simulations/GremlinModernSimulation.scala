@@ -17,7 +17,7 @@ class GremlinModernSimulation  extends Simulation {
       .vertexByProperty("name", "marko")
       .extractResultAndSaveAs(parseVertexId, "profileId"))
     .exec(gremlin("getUserFriends")
-      .neighbours("${profileId}", 1)
+      .neighbours("${profileId}")
       .check(simpleCheck(res => res.size == 3)))
     .exec(gremlin("getMutualFriends")
       .mutualNeigbours("${profileId}", "4")

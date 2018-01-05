@@ -25,7 +25,7 @@ class Pokec100Simulation extends Simulation {
       println(session("profileId").as[String])
       session}
     .exec(gremlin("getUserFriends")
-      .neighbours("${profileId}", 1)
+      .neighbours("${profileId}")
       .check(simpleCheck(res => res.size == 13))
       .extractResultAndSaveAs(parseVertexId, "neighbourId"))
     .exec{session =>

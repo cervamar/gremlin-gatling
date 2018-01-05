@@ -4,8 +4,7 @@ import java.util
 
 import cz.cvut.fit.cervamar.gatling.ResultCheck
 import cz.cvut.fit.cervamar.gatling.protocol.{GremlinProtocol, ResultConsumer}
-import cz.cvut.fit.cervamar.gatling.util.ScalaUtils
-import cz.cvut.fit.cervamar.gremlin.core.GremlinQuery
+import cz.cvut.fit.cervamar.gremlin.core.{GremlinQuery, ResolvedQuery}
 import io.gatling.commons.stats.{KO, OK}
 import io.gatling.commons.util.ClockSingleton
 import io.gatling.core.action.{Action, ChainableAction}
@@ -42,18 +41,13 @@ trait GremlinAction extends ChainableAction with NameGen {
   override def name: String = genName("gremlinQuery")
 }
 
-case class GremlinExecuteAction(
-                                 requestName: Expression[String],
+case class GremlinExecuteAction(requestName: Expression[String],
                                  gremlinQuery: GremlinQuery,
                                  checks: List[ResultCheck],
                                  extractor: Option[Extractor],
                                  protocol: GremlinProtocol,
                                  statsEngine: StatsEngine,
                                  next: Action) extends GremlinAction {
-
-  def resolveQuery(session: Session): String = {
-    gremlinQuery.getPlainQuery(session, protocol.serverClient.isSupportNumericIds)
-  }
 
   override def execute(session: Session): Unit = {
     val startTime: Long = now()
@@ -66,8 +60,8 @@ case class GremlinExecuteAction(
 
   def doAction(session: Session, startTime: Long): Unit = {
     val resolvedQuery = resolveQuery(session)
-    logger.debug("Calling {}", resolvedQuery)
-    protocol.serverClient.submitAsync(resolvedQuery, ScalaUtils.createJavaMap(gremlinQuery.getVariables),
+    logger.debug("Calling {} with bindings: {}", resolvedQuery.query, resolvedQuery.bindings)
+    protocol.serverClient.submitAsync(resolvedQuery.query, resolvedQuery.bindings,
       new ResultConsumer {
         override def accept(result: util.List[Result]): Unit = {
           logger.debug("Result is {}", result)
@@ -82,6 +76,12 @@ case class GremlinExecuteAction(
       })
   }
 
+  def resolveQuery(session: Session): ResolvedQuery = {
+    gremlinQuery.getResolvedQuery(session, isProtocolNumeric)
+  }
+
+
+  private def isProtocolNumeric : Boolean = protocol.serverClient.isSupportNumericIds
 
   @inline
   private def now() = ClockSingleton.nowMillis

@@ -26,10 +26,11 @@ abstract class GremlinBuilder(requestName: Expression[String]) extends GremlinCh
   }
 }
 
-
-case class GremlinGenericQueryBuilder  (requestName: Expression[String], query: Expression[String]) extends GremlinBuilder (requestName) {
+case class GremlinGenericQueryBuilder  (requestName: Expression[String],
+                                        query: Expression[String],
+                                        bindings: Map[String, AnyRef] = Map.empty) extends GremlinBuilder (requestName) {
   override def build(ctx: ScenarioContext, next: Action): Action = {
-    createGremlinAction(ctx, next, GremlinPlainQuery(query))
+    createGremlinAction(ctx, next, GremlinPlainQuery(query, bindings))
   }
 }
 
@@ -47,7 +48,7 @@ case class GremlinVertexByPropertyBuilder(requestName: Expression[String], prope
   }
 }
 
-case class GremlinNeighborsBuilder (requestName: Expression[String], id: Expression[String], distance: Int) extends GremlinBuilder (requestName) {
+case class GremlinNeighborsBuilder (requestName: Expression[String], id: Expression[String], distance: Int = 1) extends GremlinBuilder (requestName) {
   override def build(ctx: ScenarioContext, next: Action): Action = {
     val queryTemplate = gremlinQueryBuilder.neighbors(id, distance)
     createGremlinAction(ctx, next, queryTemplate)

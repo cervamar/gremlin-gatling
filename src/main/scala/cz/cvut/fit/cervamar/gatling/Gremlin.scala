@@ -10,8 +10,9 @@ import io.gatling.core.session.Expression
   */
 case class Gremlin(requestName: Expression[String]) {
      def query(query: Expression[String]) = GremlinGenericQueryBuilder(requestName, query)
+     def queryWithBinding(query: Expression[String], bindings: Map[String, AnyRef]) = GremlinGenericQueryBuilder(requestName, query, bindings)
      def vertex(id: Expression[String]) = GremlinVertexBuilder(requestName, id)
-     def vertexByProperty(property: Expression[String], value: Expression[String]) = GremlinVertexByPropertyBuilder(requestName, property, value);
-     def neighbours(id: Expression[String], distance:Int) = GremlinNeighborsBuilder(requestName, id, distance)
+     def vertexByProperty(property: Expression[String], value: Expression[String]) = GremlinVertexByPropertyBuilder(requestName, property, value)
+     def neighbours(id: Expression[String]) = GremlinNeighborsBuilder(requestName, id)
      def mutualNeigbours(id: Expression[String], id2: Expression[String]) = GremlinMutualBuilder(requestName, id, id2)
 }

@@ -31,7 +31,7 @@ class ExecutorQuery(graph: Graph) extends QueryExecutor {
       gremlinQuery.getVariables.foreach(x => {
       bindings.put(x._1,x._2)
     })
-      val plainQuery = gremlinQuery.getPlainQuery(session, graph.features.vertex.supportsNumericIds)
+      val plainQuery = gremlinQuery.getPlainQuery(session)
       println(plainQuery)
       engine.eval(plainQuery, bindings)
   }
@@ -45,6 +45,6 @@ object ExecutorQuery {
 class ServerExecutor(client: Client) extends QueryExecutor {
 
   override def eval(gremlinQuery: GremlinQuery, session: Session): AnyRef = {
-    client.submit(gremlinQuery.getPlainQuery(session, false), gremlinQuery.getAllVariables(session).asJava)
+    client.submit(gremlinQuery.getPlainQuery(session), gremlinQuery.getAllVariables(session, false).asJava)
   }
 }
