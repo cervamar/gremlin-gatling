@@ -21,12 +21,12 @@ trait GremlinCheckResultActionBuilder extends ActionBuilder {
       this
     }
 
-    def extractResultAndSaveAs(extractionMethod: List[Result] => String, key: String) : ActionBuilder = {
+    def extractResultAndSaveAs(extractionMethod: List[Result] => Object, key: String) : ActionBuilder = {
       extract = Some(Extractor(extractionMethod, key))
       this
     }
 }
 
-case class Extractor(extractionMethod: List[Result] => String, key: String){
+case class Extractor(extractionMethod: List[Result] => Object, key: String){
 
 }
