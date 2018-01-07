@@ -1,10 +1,5 @@
 package cz.cvut.fit.cervamar.gremlin.pokec;
 
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import cz.cvut.fit.cervamar.gatling.protocol.GremlinServerClient;
 import org.apache.tinkerpop.gremlin.driver.Cluster;
 import org.apache.tinkerpop.gremlin.server.GremlinServer;
@@ -13,6 +8,11 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -30,6 +30,7 @@ public class GremlinServerImporterTest extends GremlinServerTestBase {
     public static void setUp() throws Exception {
         startServer();
         gremlinServerClient = new GremlinServerClient(Cluster.build("localhost").port(PORT).create());
+        gremlinServerClient.connect();
     }
 
     /**
@@ -51,6 +52,7 @@ public class GremlinServerImporterTest extends GremlinServerTestBase {
 
     @AfterClass
     public static void cleanUp() throws Exception {
+        gremlinServerClient.closeClient();
         stopServer();
     }
 

@@ -33,4 +33,12 @@ case class GremlinProtocol (serverClient : GremlinServerClient) extends Protocol
   def this() {
     this(GremlinServerClient.createDefaultClient())
   }
+
+  def openClient(): Unit = {
+    serverClient.connect()
+  }
+
+  def closeClient(): Unit = {
+    serverClient.closeClient()
+  }
 }

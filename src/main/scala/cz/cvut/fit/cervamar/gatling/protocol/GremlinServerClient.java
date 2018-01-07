@@ -1,24 +1,19 @@
 package cz.cvut.fit.cervamar.gatling.protocol;
 
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tinkerpop.gremlin.driver.Client;
 import org.apache.tinkerpop.gremlin.driver.Cluster;
 import org.apache.tinkerpop.gremlin.driver.Result;
 import org.apache.tinkerpop.gremlin.driver.ResultSet;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.function.Function;
 
 /**
  * Created on 6/15/2017.
@@ -30,8 +25,9 @@ public class GremlinServerClient {
 
     private static final int PROCESS_RESULT_TIMEOUT = 10;
     private static final int QUERY_TIMEOUT = 10;
+    private final Cluster cluster;
     private Client client;
-    private final boolean supportNumericIds;
+    private  boolean supportNumericIds;
 
     private ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
 
@@ -46,6 +42,10 @@ public class GremlinServerClient {
     }
 
     public GremlinServerClient(Cluster cluster) throws ExecutionException, InterruptedException {
+        this.cluster = cluster;
+    }
+
+    public void connect() throws ExecutionException, InterruptedException {
         this.client = cluster.connect();
         supportNumericIds = submit("graph.features().vertex().supportsNumericIds()").get(0).getBoolean();
     }
@@ -81,6 +81,10 @@ public class GremlinServerClient {
         return result;
     }
 
+    public void closeClient() {
+        client.close();
+        cluster.close();
+    }
 
     public boolean isSupportNumericIds() {
         return supportNumericIds;
