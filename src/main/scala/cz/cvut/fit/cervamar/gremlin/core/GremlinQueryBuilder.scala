@@ -2,7 +2,6 @@ package cz.cvut.fit.cervamar.gremlin.core
 
 import java.util
 
-import com.typesafe.scalalogging.StrictLogging
 import cz.cvut.fit.cervamar.gatling.util.ScalaUtils
 import io.gatling.core.session.{Expression, Session, StaticStringExpression}
 
@@ -12,7 +11,7 @@ import io.gatling.core.session.{Expression, Session, StaticStringExpression}
   * @author Marek.Cervak67
   */
 
-trait GremlinQuery extends StrictLogging{
+trait GremlinQuery {
     def getPlainQuery(session: Session): String = {
       getQuery.apply(session).get
     }
@@ -44,16 +43,13 @@ trait GremlinQuery extends StrictLogging{
     }
     else {
       var query = getPlainQuery(session)
-      logger.debug("query: {}, map:", query)
       getExpressionVariables.foreach((m) => {
         val res = m._2.apply(session).get
-        logger.debug("(k,v): {},{}, map:", m._1, res)
         if(m._1.startsWith(GremlinQuery.id_prefix)) {
           query = query.replaceFirst(m._1, "\"" + res + "\"")
         }
         else ret += (m._1 -> res)
       })
-      logger.debug("query after: {}", query)
       ResolvedQuery(query, ScalaUtils.createJavaMap(ret))
     }
   }

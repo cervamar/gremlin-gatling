@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.script.ScriptException;
+
 import cz.cvut.fit.cervamar.gremlin.utils.MockedSession;
 import cz.cvut.fit.cervamar.gremlin.utils.TestSourceProvider;
 import io.gatling.core.session.Session;
@@ -39,7 +41,7 @@ public class GremlinQueryBuilderTest {
     @Parameterized.Parameters
     public static Collection<TestSourceProvider> properties () {
         return Arrays.asList(new TestSourceProvider.GraphInMemorySource("src/test/resources/tinkerpop-modern.properties"),
-                new TestSourceProvider.GraphInMemorySource("src/test/resources/orientDb-inmemory.properties"),
+                new TestSourceProvider.GraphInMemorySource("src/test/resources/orientDb-inmemory.properties", false),
                 new TestSourceProvider.GraphInMemorySource("src/test/resources/janusGraph-inmemory.properties"),
                 new TestSourceProvider.Neo4JSource());
     }
@@ -49,11 +51,11 @@ public class GremlinQueryBuilderTest {
         sourceProvider.initGraph();
         sourceProvider.fill();
         vertices = sourceProvider.updateIds();
-        executorQuery = new ExecutorQuery(sourceProvider.getGraph());
+        executorQuery = new ExecutorQuery(sourceProvider.getGraph(), sourceProvider.supportsNumericIds());
     }
 
     @Test
-    public void shortestPath() {
+    public void shortestPath() throws ScriptException {
         GremlinQuery query = gremlinQueryBuilder.shortestPath(vertices.get("marko").toString(), vertices.get("ripple").toString());
         Object result = executorQuery.eval(query, mockedSession);
         List paths = IteratorUtils.asList(result);
@@ -63,7 +65,7 @@ public class GremlinQueryBuilderTest {
 
 
     @Test
-    public void ageMean() {
+    public void ageMean() throws ScriptException {
         GremlinQuery query = gremlinQueryBuilder.query("g.V().values('age').mean()");
         Object result = executorQuery.eval(query, mockedSession);
         List mean = IteratorUtils.asList(result);
@@ -72,7 +74,7 @@ public class GremlinQueryBuilderTest {
     }
 
     @Test
-    public void getNeighbors() {
+    public void getNeighbors() throws ScriptException {
         GremlinQuery query = gremlinQueryBuilder.neighbors(vertices.get("marko").toString(), 1);
         Object result = executorQuery.eval(query, mockedSession);
         List results = IteratorUtils.asList(result);
@@ -84,7 +86,7 @@ public class GremlinQueryBuilderTest {
     }
 
     @Test
-    public void getMutualNeighbors() {
+    public void getMutualNeighbors() throws ScriptException {
         GremlinQuery query = gremlinQueryBuilder.mutualNeighbors(vertices.get("marko").toString(), vertices.get("josh").toString());
         Object result = executorQuery.eval(query, mockedSession);
         List results = IteratorUtils.asList(result);
@@ -96,7 +98,7 @@ public class GremlinQueryBuilderTest {
     }
 
     @Test
-    public void getVertex() {
+    public void getVertex() throws ScriptException {
         GremlinQuery query = gremlinQueryBuilder.getVertex(vertices.get("marko").toString());
         Object result = executorQuery.eval(query, mockedSession);
         List results = IteratorUtils.asList(result);

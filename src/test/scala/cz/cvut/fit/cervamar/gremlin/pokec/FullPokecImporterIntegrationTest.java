@@ -45,4 +45,19 @@ public class FullPokecImporterIntegrationTest extends GremlinServerTestBase {
         assertEquals(10000L, countVertices());
         assertEquals(121716L, countEdges());
     }
+
+    @Test
+    public void loadSmallGraph() throws InterruptedException, ExecutionException, IOException {
+        //clearGraph();
+        assertEquals(0L, countVertices());
+        assertEquals(0L, countEdges());
+
+        PokecImporter pokecImporter = new PokecImporter(gremlinServerClient);
+        pokecImporter.loadVerticesToServer(SRC_TEST_RESOURCES_POKEC + "soc-pokec-profiles/profiles-100.txt");
+        pokecImporter.loadEdgesToServer(SRC_TEST_RESOURCES_POKEC + "soc-pokec-relationships/relations-100.txt");
+        assertEquals(100L, countVertices());
+        assertEquals(82L, countEdges());
     }
+}
+
+

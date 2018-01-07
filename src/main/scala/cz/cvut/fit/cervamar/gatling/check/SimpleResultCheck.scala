@@ -14,12 +14,11 @@ import scala.collection.mutable
   * @author Marek.Cervak
   */
 
-case class SimpleResultCheck (func:List[Result] => Boolean) extends ResultCheck {
-  override def check(response:List[Result],session:Session)(implicit cache:mutable.Map[Any,Any]):Validation[CheckResult]={
-    if(func(response)){
+case class SimpleResultCheck(func: List[Result] => Boolean) extends ResultCheck {
+  override def check(response: List[Result], session: Session)(implicit cache: mutable.Map[Any, Any]): Validation[CheckResult] = {
+    if (func(response))
       CheckResult.NoopCheckResultSuccess
-    }else{
-      Failure("Gremlin Result check Failed")
-    }
+     else
+      Failure("Gremlin result check failed")
   }
 }

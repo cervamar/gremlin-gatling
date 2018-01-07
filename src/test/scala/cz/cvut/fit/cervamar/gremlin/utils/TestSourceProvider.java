@@ -22,6 +22,7 @@ import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
  * @author Marek.Cervak
  */
 public interface TestSourceProvider {
+    boolean supportsNumericIds();
     void initGraph();
     Graph getGraph();
     void clean() throws Exception;
@@ -46,6 +47,7 @@ public interface TestSourceProvider {
 
     abstract class GraphSource implements TestSourceProvider {
         protected Graph graph;
+        protected boolean supportsNumericIds;
 
         @Override
         public Graph getGraph() {
@@ -57,12 +59,21 @@ public interface TestSourceProvider {
             getGraph().close();
         }
 
+        @Override
+        public boolean supportsNumericIds() {
+            return supportsNumericIds;
+        }
+
     }
 
     class GraphInMemorySource extends GraphSource {
         private String configurationFile;
         public GraphInMemorySource(String path) {
-            configurationFile = path;
+            this(path, true);
+        }
+        public GraphInMemorySource(String path, boolean supportNumericIds) {
+            this.configurationFile = path;
+            this.supportsNumericIds = supportNumericIds;
         }
 
         @Override
