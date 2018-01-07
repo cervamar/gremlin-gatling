@@ -96,7 +96,6 @@ case class GremlinExecuteAction(requestName: Expression[String],
         }
         case Failure(ex) =>
           logger.warn("Problem during extracting value with key: {}", extractor.get.key)
-          next ! session.markAsFailed
       }
     }
     session

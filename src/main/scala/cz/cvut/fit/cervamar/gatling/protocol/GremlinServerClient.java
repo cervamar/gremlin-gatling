@@ -28,7 +28,7 @@ import org.apache.tinkerpop.gremlin.driver.ResultSet;
 @Slf4j
 public class GremlinServerClient {
 
-    private static final int PROCESS_RESUL_TIMEOUT = 2;
+    private static final int PROCESS_RESULT_TIMEOUT = 10;
     private static final int QUERY_TIMEOUT = 10;
     private Client client;
     private final boolean supportNumericIds;
@@ -54,7 +54,7 @@ public class GremlinServerClient {
         CompletableFuture<ResultSet> response = client.submitAsync(gremlinQuery, variables);
         response.acceptEither(timeoutAfter(QUERY_TIMEOUT, TimeUnit.SECONDS),
                 results -> results.all()
-                        .acceptEither(timeoutAfter(PROCESS_RESUL_TIMEOUT, TimeUnit.SECONDS), consumer)
+                        .acceptEither(timeoutAfter(PROCESS_RESULT_TIMEOUT, TimeUnit.SECONDS), consumer)
                         .exceptionally(getThrowableVoidFunction(consumer)))
                 .exceptionally(getThrowableVoidFunction(consumer));
     }
